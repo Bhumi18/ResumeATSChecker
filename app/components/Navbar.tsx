@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { Link } from "react-router";
-import { UserButton, useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
+import ProfileMenu from "./ProfileMenu";
 
 const Navbar: () => JSX.Element = () => {
   const { isSignedIn } = useAuth();
@@ -17,13 +18,7 @@ const Navbar: () => JSX.Element = () => {
           </Link>
         )}
         {isSignedIn ? (
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-10 h-10",
-              },
-            }}
-          />
+          <ProfileMenu />
         ) : (
           <Link to="/sign-in" className="primary-button w-fit">
             Sign In
