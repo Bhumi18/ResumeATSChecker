@@ -26,15 +26,10 @@ export default function AccountPage() {
   const [pendingPhoneId, setPendingPhoneId] = useState<string | null>(null);
 
   // Password form state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // 2FA state
-  const [isEnabling2FA, setIsEnabling2FA] = useState(false);
-  const [qrCode, setQrCode] = useState("");
-  const [backupCodes, setBackupCodes] = useState<string[]>([]);
-  const [twoFactorCode, setTwoFactorCode] = useState("");
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,78 +292,40 @@ export default function AccountPage() {
     setMessage("");
 
     try {
+      // Update password with signOutOfOtherSessions option
       await user.updatePassword({
         currentPassword,
         newPassword,
+        signOutOfOtherSessions: true,
       });
+      
       setMessage("Password changed successfully!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setShowPasswordModal(false);
       setTimeout(() => setMessage(""), 3000);
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Failed to change password");
+      console.error("Password change error:", err);
+      
+      // Provide clear error messages
+      if (err.errors?.[0]?.code === "form_password_incorrect") {
+        setError("Current password is incorrect. Please try again.");
+      } else if (err.errors?.[0]?.message?.includes("Reverification") || err.errors?.[0]?.code === "reverification_required") {
+        setError("For security reasons, please sign out and sign back in before changing your password.");
+      } else if (err.errors?.[0]?.code === "form_password_pwned") {
+        setError("This password has been found in a data breach. Please choose a different password.");
+      } else if (err.errors?.[0]?.code === "form_password_size_in_bytes") {
+        setError("Password must be at least 8 characters long.");
+      } else {
+        setError(err.errors?.[0]?.message || err.message || "Failed to change password. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEnable2FA = async () => {
-    if (!user) return;
 
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await user.createTOTP();
-      // Generate QR code URL from the URI
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(response.uri || "")}`;
-      setQrCode(qrCodeUrl);
-      setBackupCodes(response.backupCodes || []);
-      setIsEnabling2FA(true);
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Failed to enable 2FA");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify2FA = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      await user.verifyTOTP({ code: twoFactorCode });
-      setMessage("Two-factor authentication enabled successfully!");
-      setIsEnabling2FA(false);
-      setTwoFactorCode("");
-      setTimeout(() => setMessage(""), 3000);
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Failed to verify 2FA code");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDisable2FA = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      await user.disableTOTP();
-      setMessage("Two-factor authentication disabled successfully!");
-      setTimeout(() => setMessage(""), 3000);
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Failed to disable 2FA");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleConnectGoogle = async () => {
     if (!user) return;
@@ -390,16 +347,45 @@ export default function AccountPage() {
   const handleDisconnectAccount = async (accountId: string) => {
     if (!user) return;
 
+    // Check if user has other authentication methods
+    const hasPassword = user.passwordEnabled;
+    const externalAccountsCount = user.externalAccounts?.length || 0;
+    const verifiedEmailsCount = user.emailAddresses?.filter(e => e.verification?.status === "verified").length || 0;
+
+    // Prevent disconnecting if it's the only auth method
+    if (externalAccountsCount === 1 && !hasPassword && verifiedEmailsCount === 0) {
+      setError("Cannot disconnect your only sign-in method. Please add a password or another email first.");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to disconnect this account?")) {
+      return;
+    }
+
     setLoading(true);
     setError("");
     setMessage("");
 
     try {
-      await user.externalAccounts.find(acc => acc.id === accountId)?.destroy();
-      setMessage("Account disconnected successfully!");
-      setTimeout(() => setMessage(""), 3000);
+      const account = user.externalAccounts.find(acc => acc.id === accountId);
+      if (account) {
+        await account.destroy();
+        setMessage("Account disconnected successfully!");
+        setTimeout(() => setMessage(""), 3000);
+      }
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Failed to disconnect account");
+      console.error("Disconnect error:", err);
+      
+      // Provide clear, actionable error messages
+      if (err.errors?.[0]?.code === "reverification_required" || err.errors?.[0]?.message?.includes("Reverification")) {
+        setError("🔒 Security check required: Please sign out and sign back in, then try disconnecting this account again.");
+      } else if (err.errors?.[0]?.code === "form_param_nil") {
+        setError("For security reasons, please sign out and sign back in before disconnecting this account.");
+      } else if (err.errors?.[0]?.message?.includes("last") || err.errors?.[0]?.message?.includes("only")) {
+        setError("Cannot disconnect your only sign-in method. Please add a password or another account first.");
+      } else {
+        setError(err.errors?.[0]?.message || err.message || "Failed to disconnect account. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -930,158 +916,17 @@ export default function AccountPage() {
               <div className="space-y-8">
                 {/* Password Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Password</h3>
-                  <form onSubmit={handleChangePassword} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Current password
-                      </label>
-                      <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        New password
-                      </label>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
-                        required
-                        minLength={8}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Confirm new password
-                      </label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
-                        required
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
-                    >
-                      {loading ? "Updating..." : "Update password"}
-                    </button>
-                  </form>
-                </div>
-
-                <hr className="border-gray-200" />
-
-                {/* Two-Factor Authentication Section */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Two-factor authentication</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Password</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Add an additional layer of security to your account during sign in.
+                    Change your password to keep your account secure.
                   </p>
-                  
-                  {user?.twoFactorEnabled ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        <span className="text-sm font-medium text-green-700">Two-factor authentication is enabled</span>
-                      </div>
-                      <button
-                        onClick={handleDisable2FA}
-                        disabled={loading}
-                        className="px-4 py-2 text-sm bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-all disabled:opacity-50"
-                      >
-                        Disable two-factor authentication
-                      </button>
-                    </div>
-                  ) : isEnabling2FA ? (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="text-sm font-semibold text-gray-800 mb-3">
-                          Scan this QR code with your authenticator app
-                        </h4>
-                        {qrCode && (
-                          <div className="flex justify-center mb-4">
-                            <img src={qrCode} alt="QR Code" className="w-48 h-48" />
-                          </div>
-                        )}
-                        
-                        {backupCodes.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="text-sm font-semibold text-gray-800 mb-2">Backup codes</h4>
-                            <p className="text-xs text-gray-600 mb-2">
-                              Save these codes in a safe place. Each code can only be used once.
-                            </p>
-                            <div className="grid grid-cols-2 gap-2 p-3 bg-white rounded border border-gray-200 font-mono text-xs">
-                              {backupCodes.map((code, index) => (
-                                <div key={index} className="text-gray-800">{code}</div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <form onSubmit={handleVerify2FA} className="space-y-3">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                              Enter code from authenticator app
-                            </label>
-                            <input
-                              type="text"
-                              value={twoFactorCode}
-                              onChange={(e) => setTwoFactorCode(e.target.value)}
-                              placeholder="Enter 6-digit code"
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
-                              required
-                              maxLength={6}
-                            />
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
-                            >
-                              {loading ? "Verifying..." : "Enable"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsEnabling2FA(false);
-                                setTwoFactorCode("");
-                                setQrCode("");
-                                setBackupCodes([]);
-                              }}
-                              className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleEnable2FA}
-                      disabled={loading}
-                      className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
-                    >
-                      Enable two-factor authentication
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordModal(true)}
+                    className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                  >
+                    Update password
+                  </button>
                 </div>
 
                 <hr className="border-gray-200" />
@@ -1180,6 +1025,108 @@ export default function AccountPage() {
             )}
           </div>
         </div>
+
+        {/* Password Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowPasswordModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800">Update Password</h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setError("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Current password
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    New password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    required
+                    minLength={8}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Confirm new password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    {loading ? "Updating..." : "Update password"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordModal(false);
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                      setError("");
+                    }}
+                    disabled={loading}
+                    className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Back Button */}
         <div className="mt-6">
