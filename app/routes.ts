@@ -6,4 +6,5 @@ export default [
   route("sign-up", "routes/sign-up.tsx"),
   route("sso-callback", "routes/sso-callback.tsx"),
   route("account", "routes/account.tsx"),
+  route("upload", "routes/upload.tsx"),
 ] satisfies RouteConfig;
