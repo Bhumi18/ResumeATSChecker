@@ -52,19 +52,19 @@ export default function Upload() {
     <ProtectedRoute>
       <main className="min-h-screen bg-[url('/images/bg-main.svg')] bg-cover">
         <Navbar />
-        <section className="main-section">
-          <div className="page-heading py-16">
+        <section className="main-section py-8">
+          <div className="page-heading py-10">
             <h1>Upload Your Resume</h1>
             <h2>Get instant ATS-powered feedback to improve your chances</h2>
           </div>
 
-          <div className="max-w-2xl mx-auto px-4 pb-16">
+          <div className="max-w-2xl mx-auto px-4 pb-10">
             <div className="bg-white rounded-3xl shadow-2xl p-8">
               <FileUploader onFileSelect={handleFileSelect} />
 
               {error && (
-                <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mt-5 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {error}
@@ -72,8 +72,8 @@ export default function Upload() {
               )}
 
               {success && (
-                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mt-5 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {success}
@@ -81,11 +81,11 @@ export default function Upload() {
               )}
 
               {selectedFile && (
-                <div className="mt-8 flex justify-center">
+                <div className="mt-6 flex justify-center">
                   <button
                     onClick={handleAnalyze}
                     disabled={loading}
-                    className="px-8 py-3 primary-gradient text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-10 py-3 primary-gradient text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export default function Upload() {
               )}
             </div>
 
-            <div className="mt-8 text-center text-sm text-gray-600">
+            <div className="mt-6 text-center text-sm text-gray-600 space-y-0.5">
               <p>✓ Maximum file size: 20MB</p>
               <p>✓ Supported format: PDF only</p>
               <p>✓ Your data is secure and encrypted</p>
