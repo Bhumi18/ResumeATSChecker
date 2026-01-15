@@ -15,12 +15,16 @@ export async function uploadResumeFile(
     const { error: uploadError } = await supabase.storage
       .from('resumes')
       .upload(filePath, file, {
-        contentType: file.type,
+        contentType: file.type || 'application/pdf',
         upsert: false,
       });
 
     if (uploadError) {
       console.error('Error uploading file:', uploadError);
+      console.error('Upload error details:', {
+        message: uploadError.message,
+        name: uploadError.name,
+      });
       return null;
     }
 
