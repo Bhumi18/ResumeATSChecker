@@ -29,6 +29,15 @@ export default function Home() {
       try {
         setLoading(true);
         
+        // Check if Supabase is configured
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseKey) {
+          setError("Database not configured. Please set up Supabase environment variables (see README.md)");
+          return;
+        }
+        
         // Get or create user in database
         const dbUser = await getOrCreateUser(user.id, {
           email: user.primaryEmailAddress?.emailAddress || "",
@@ -38,7 +47,7 @@ export default function Home() {
         });
 
         if (!dbUser) {
-          setError("Failed to load user data");
+          setError("Failed to connect to database. Please ensure Supabase is properly configured and the database schema is set up.");
           return;
         }
 
@@ -47,7 +56,7 @@ export default function Home() {
         setResumes(userResumes);
       } catch (err) {
         console.error("Error loading resumes:", err);
-        setError("Failed to load resumes");
+        setError("Failed to load resumes. Please check your database configuration.");
       } finally {
         setLoading(false);
       }
@@ -67,8 +76,25 @@ export default function Home() {
           </div>
 
           {error && (
-            <div className="max-w-4xl mx-auto mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
+            <div className="max-w-4xl mx-auto mb-6 p-6 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-1">Setup Required</h3>
+                  <p className="text-yellow-700 mb-3">{error}</p>
+                  <div className="text-sm text-yellow-600">
+                    <p className="font-medium mb-1">Quick setup steps:</p>
+                    <ol className="list-decimal list-inside space-y-1 ml-2">
+                      <li>Create a Supabase account at <a href="https://supabase.com" target="_blank" rel="noopener" className="underline">supabase.com</a></li>
+                      <li>Run the database migration from <code className="bg-yellow-100 px-1 rounded">database/schema.sql</code></li>
+                      <li>Add your Supabase credentials to <code className="bg-yellow-100 px-1 rounded">.env</code> file</li>
+                      <li>Restart the dev server</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
