@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { getResumeWithAnalysis, updateResumeStatus } from "../lib/database";
 import { getSignedResumeUrl } from "../lib/storage";
+import { generateOptimizedResume, reAnalyzeResume } from "../lib/ai-analyzer";
 import type { Database } from "../../types/database";
 
 type DatabaseResume = Database['public']['Tables']['resumes']['Row'];
@@ -36,6 +37,7 @@ export default function AnalyzeResume() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [modifiedResumeUrl, setModifiedResumeUrl] = useState<string>("");
   const [hasModifications, setHasModifications] = useState(false);
+  const [isMatching, setIsMatching] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -252,6 +254,104 @@ export default function AnalyzeResume() {
     }
   };
 
+  const handleMatchResume = async () => {
+    if (!resume || !resumeUrl) return;
+    
+    if (!resume.job_description || !resume.job_title) {
+      alert('⚠️ Job description and job title are required to match resume. Please go back and provide them.');
+      return;
+    }
+
+    try {
+      setIsMatching(true);
+      
+      // Extract current resume text
+      const response = await fetch(resumeUrl);
+      const blob = await response.blob();
+      const mammoth = await import('mammoth');
+      const arrayBuffer = await blob.arrayBuffer();
+      const textResult = await mammoth.extractRawText({ arrayBuffer });
+      const currentResumeText = textResult.value;
+      
+      // Generate optimized resume using AI
+      const optimizedText = await generateOptimizedResume(
+        currentResumeText,
+        resume.job_title,
+        resume.job_description
+      );
+      
+      // Convert optimized text to HTML for display
+      const htmlContent = optimizedText
+        .split('\n\n')
+        .map(paragraph => {
+          if (!paragraph.trim()) return '';
+          // Detect headings (all caps, short lines)
+          if (paragraph.length < 60 && paragraph === paragraph.toUpperCase() && /[A-Z]/.test(paragraph)) {
+            return `<h2 style="font-weight: bold; font-size: 14pt; margin-top: 12pt; margin-bottom: 6pt;">${paragraph}</h2>`;
+          }
+          // Detect subheadings
+          if (paragraph.length < 80 && paragraph.includes(':') && !paragraph.includes('\n')) {
+            return `<h3 style="font-weight: bold; font-size: 12pt; margin-top: 10pt; margin-bottom: 4pt;">${paragraph}</h3>`;
+          }
+          return `<p style="margin-bottom: 8pt; line-height: 1.5;">${paragraph}</p>`;
+        })
+        .join('');
+      
+      setResumeHtml(htmlContent);
+      
+      // Generate Word document
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #000000; margin: 1in; }
+            h1 { font-size: 16pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
+            h2 { font-size: 14pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
+            h3 { font-size: 12pt; font-weight: bold; margin-top: 10pt; margin-bottom: 4pt; }
+            p { margin-top: 0; margin-bottom: 8pt; }
+            ul, ol { margin-left: 0.5in; margin-bottom: 8pt; }
+            li { margin-bottom: 4pt; }
+            strong, b { font-weight: bold; }
+            em, i { font-style: italic; }
+          </style>
+        </head>
+        <body>${htmlContent}</body>
+        </html>
+      `;
+      
+      const htmlDocx = await import('html-docx-js-typescript');
+      const docBlob = await htmlDocx.asBlob(fullHtml) as any;
+      
+      let blobToUse: Blob;
+      if (docBlob instanceof Blob) {
+        blobToUse = docBlob;
+      } else {
+        blobToUse = new Blob([Buffer.from(docBlob)] as any, { 
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        });
+      }
+      
+      const url = URL.createObjectURL(blobToUse);
+      
+      if (modifiedResumeUrl) {
+        URL.revokeObjectURL(modifiedResumeUrl);
+      }
+      
+      setModifiedResumeUrl(url);
+      setHasModifications(true);
+      
+      alert('🎉 Resume Optimized Successfully!\n\nYour resume has been completely rewritten to perfectly align with the job description. The AI has:\n\n✓ Matched your experience with job requirements\n✓ Optimized keywords for ATS systems\n✓ Enhanced tone and style\n✓ Restructured content for impact\n\nYou can now download the optimized resume or make additional edits!');
+    } catch (err) {
+      console.error('Error matching resume:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      alert(`❌ Failed to match resume.\n\nError: ${errorMessage}\n\nPlease check:\n• Your Google AI API key is configured\n• You have internet connection\n• The resume file is accessible`);
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
   const handleDownload = async () => {
     if (!resume) return;
 
@@ -411,6 +511,17 @@ export default function AnalyzeResume() {
                   <span className="text-sm text-white/80 font-medium">Score:</span>
                   <span className="text-2xl font-bold text-white">{resume.overall_score || 0}</span>
                 </div>
+                <button
+                  onClick={handleMatchResume}
+                  disabled={isMatching || !resume.job_description}
+                  className="px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                  title={!resume.job_description ? "Job description is required" : ""}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {isMatching ? 'Optimizing...' : 'Match Resume'}
+                </button>
                 <button
                   onClick={handleDownload}
                   disabled={saving}
@@ -680,6 +791,30 @@ export default function AnalyzeResume() {
                 <div className="p-7">
                   {resumeUrl ? (
                     <div className="relative">
+                      {/* Loading Overlay for Auto-Match */}
+                      {isMatching && (
+                        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl">
+                          <div className="text-center space-y-4">
+                            <div className="relative">
+                              <svg className="animate-spin h-16 w-16 text-green-600 mx-auto" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-bold text-gray-900 mb-2">AI is Optimizing Your Resume</h3>
+                              <p className="text-gray-600">Matching your resume perfectly with the job description...</p>
+                              <p className="text-sm text-gray-500 mt-2">This usually takes 10-15 seconds</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       {isEditMode ? (
                         // Edit Mode - Editable textarea
                         <div className="space-y-4">

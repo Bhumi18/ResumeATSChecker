@@ -12,20 +12,21 @@
 interface ResumeAnalysisResult {
   overallScore: number;
   atsScore: number;
-  atsTips: Array<{ type: 'good' | 'bad'; tip: string }>;
+  atsTips: Array<{ type: 'good' | 'bad'; tip: string; original?: string; replacement?: string }>;
   toneStyleScore: number;
-  toneStyleTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string }>;
+  toneStyleTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string; original?: string; replacement?: string }>;
   contentScore: number;
-  contentTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string }>;
+  contentTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string; original?: string; replacement?: string }>;
   structureScore: number;
-  structureTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string }>;
+  structureTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string; original?: string; replacement?: string }>;
   skillsScore: number;
-  skillsTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string }>;
+  skillsTips: Array<{ type: 'good' | 'improve'; tip: string; explanation: string; original?: string; replacement?: string }>;
   keywordsFound: string[];
   keywordsMissing: string[];
   sectionsFound: string[];
   sectionsMissing: string[];
   modelUsed?: string;
+  optimizedResume?: string; // Complete optimized resume content
 }
 
 interface EmbeddingResult {
@@ -553,4 +554,103 @@ export function getMockAnalysis(): ResumeAnalysisResult {
     sectionsMissing: ['Projects', 'Certifications'],
     modelUsed: 'mock',
   };
+}
+
+/**
+ * Generate a completely optimized resume that matches the job description
+ * This applies ALL AI suggestions automatically
+ */
+export async function generateOptimizedResume(
+  resumeText: string,
+  jobTitle: string,
+  jobDescription: string
+): Promise<string> {
+  const apiKey = import.meta.env.VITE_GOOGLE_AI_STUDIO_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google AI Studio API key not configured');
+  }
+
+  const prompt = `You are an expert resume writer. Rewrite this entire resume to perfectly match the job description while maintaining truthfulness and the candidate's actual experience.
+
+JOB TITLE: ${jobTitle}
+
+JOB DESCRIPTION:
+${jobDescription}
+
+CURRENT RESUME:
+${resumeText}
+
+INSTRUCTIONS:
+1. Rewrite the COMPLETE resume content
+2. Incorporate keywords from the job description naturally
+3. Emphasize relevant experience and skills
+4. Use strong action verbs and quantifiable achievements
+5. Maintain the same factual information but optimize presentation
+6. Structure should be: Contact Info → Professional Summary → Experience → Education → Skills → (optional) Projects/Certifications
+7. Make it sound natural and human-written, NOT AI-generated
+8. Use professional but conversational language
+9. Add metrics and numbers where appropriate
+10. Ensure ATS-friendly formatting
+
+OUTPUT FORMAT: Return ONLY the complete resume text, no explanations, no JSON, no markdown. Just the plain text resume content that can be directly copied into a Word document.`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODELS.FLASH}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 3000,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const optimizedResume = data.candidates[0].content.parts[0].text.trim();
+    
+    return optimizedResume;
+  } catch (error) {
+    console.error('Error generating optimized resume:', error);
+    throw error;
+  }
+}
+
+/**
+ * Re-analyze resume after changes to update scores
+ */
+export async function reAnalyzeResume(
+  resumeText: string,
+  jobTitle?: string,
+  jobDescription?: string
+): Promise<ResumeAnalysisResult> {
+  const apiKey = import.meta.env.VITE_GOOGLE_AI_STUDIO_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google AI Studio API key not configured');
+  }
+
+  // Use the same analysis function but mark it as re-analysis
+  console.log('Re-analyzing resume with updated content...');
+  return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
 }
