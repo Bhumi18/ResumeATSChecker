@@ -218,10 +218,21 @@ export default function AnalyzeResume() {
       
       // Convert HTML to Word document using html-docx-js
       const htmlDocx = await import('html-docx-js-typescript');
-      const docBlob = await htmlDocx.asBlob(fullHtml);
+      const docBlob = await htmlDocx.asBlob(fullHtml) as any;
+      
+      // Ensure it's a Blob object - convert if needed
+      let blobToUse: Blob;
+      if (docBlob instanceof Blob) {
+        blobToUse = docBlob;
+      } else {
+        // Handle Buffer type by converting to Blob
+        blobToUse = new Blob([Buffer.from(docBlob)] as any, { 
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        });
+      }
       
       // Create URL for the modified document
-      const url = URL.createObjectURL(docBlob);
+      const url = URL.createObjectURL(blobToUse);
       
       // Clean up old modified URL if it exists
       if (modifiedResumeUrl) {
