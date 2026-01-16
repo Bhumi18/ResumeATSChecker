@@ -353,13 +353,13 @@ export default function AnalyzeResume() {
     { id: 'skills' as const, label: 'Skills', score: analysis?.skills_score },
   ];
 
-  const getTipsForTab = (): string[] => {
+  const getTipsForTab = (): any[] => {
     if (!analysis) return [];
     
-    const getTips = (tips: any): string[] => {
+    const getTips = (tips: any): any[] => {
       if (!tips) return [];
-      if (Array.isArray(tips)) return tips.map(t => String(t));
-      if (typeof tips === 'string') return [tips];
+      if (Array.isArray(tips)) return tips;
+      if (typeof tips === 'string') return [{ tip: tips, type: 'improve' }];
       return [];
     };
     
