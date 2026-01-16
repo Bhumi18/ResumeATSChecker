@@ -35,6 +35,11 @@ export default function Upload() {
   const navigate = useNavigate();
 
   const handleFileSelect = (file: File | null) => {
+    if (file && file.name.toLowerCase().endsWith('.pdf')) {
+      setError("PDF files are not supported. Please upload your resume in Word format (.doc or .docx)");
+      setSelectedFile(null);
+      return;
+    }
     setSelectedFile(file);
     setError("");
     setSuccess("");
@@ -42,7 +47,12 @@ export default function Upload() {
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
-      setError("Please select a PDF file first");
+      setError("Please select a Word document first");
+      return;
+    }
+
+    if (selectedFile.name.toLowerCase().endsWith('.pdf')) {
+      setError("PDF files are not supported. Please upload your resume in Word format (.doc or .docx)");
       return;
     }
 
@@ -289,7 +299,8 @@ export default function Upload() {
 
             <div className="mt-6 text-center text-sm text-gray-600 space-y-0.5">
               <p>✓ Maximum file size: 20MB</p>
-              <p>✓ Supported format: PDF only</p>
+              <p>✓ Supported formats: .doc, .docx (Word documents only)</p>
+              <p>✓ PDF files are not supported</p>
               <p>✓ Your data is secure and encrypted</p>
             </div>
           </div>

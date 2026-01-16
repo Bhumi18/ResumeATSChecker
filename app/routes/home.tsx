@@ -376,7 +376,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-1">Upload Resume</h4>
-                      <p className="text-sm text-gray-600">Simply upload your PDF resume</p>
+                      <p className="text-sm text-gray-600">Simply upload your resume</p>
                     </div>
                   </div>
                   
