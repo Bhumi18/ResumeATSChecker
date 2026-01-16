@@ -139,6 +139,54 @@ form {
     animation: slideIn 0.3s ease-out;
   }
 
+  /* Rich text editor styles for resume editing */
+  [contenteditable] h1 {
+    font-size: 18pt;
+    font-weight: bold;
+    margin-top: 16pt;
+    margin-bottom: 8pt;
+    color: #1f2937;
+  }
+  
+  [contenteditable] h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 14pt;
+    margin-bottom: 6pt;
+    color: #374151;
+  }
+  
+  [contenteditable] h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 12pt;
+    margin-bottom: 4pt;
+    color: #4b5563;
+  }
+  
+  [contenteditable] p {
+    margin-bottom: 8pt;
+    line-height: 1.5;
+  }
+  
+  [contenteditable] ul, [contenteditable] ol {
+    margin-left: 24pt;
+    margin-bottom: 8pt;
+  }
+  
+  [contenteditable] li {
+    margin-bottom: 4pt;
+    line-height: 1.5;
+  }
+  
+  [contenteditable] strong, [contenteditable] b {
+    font-weight: bold;
+  }
+  
+  [contenteditable] em, [contenteditable] i {
+    font-style: italic;
+  }
+
   .score-badge {
     @apply flex flex-row items-center justify-center py-1 px-2 gap-4 rounded-[96px];
   }

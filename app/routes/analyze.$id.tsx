@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useUser } from "@clerk/clerk-react";
 import type { Route } from "./+types/analyze.$id";
@@ -29,6 +29,14 @@ export default function AnalyzeResume() {
   const [activeTab, setActiveTab] = useState<'ats' | 'tone' | 'content' | 'structure' | 'skills'>('ats');
   const [saving, setSaving] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string>("");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [resumeText, setResumeText] = useState<string>("");
+  const [resumeHtml, setResumeHtml] = useState<string>("");
+  const [originalHtml, setOriginalHtml] = useState<string>("");
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [modifiedResumeUrl, setModifiedResumeUrl] = useState<string>("");
+  const [hasModifications, setHasModifications] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadResumeAnalysis() {
@@ -97,22 +105,173 @@ export default function AnalyzeResume() {
 
 
 
+  const extractTextFromWord = async () => {
+    if (!resumeUrl) return;
+    
+    try {
+      setIsExtracting(true);
+      // Fetch the Word document
+      const response = await fetch(resumeUrl);
+      const blob = await response.blob();
+      
+      // Use mammoth.js to extract HTML from Word document with full styling
+      const mammoth = await import('mammoth');
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      // Extract HTML with comprehensive style preservation
+      const htmlResult = await mammoth.convertToHtml(
+        { arrayBuffer },
+        {
+          styleMap: [
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh",
+            "p[style-name='Heading 3'] => h3:fresh",
+            "p[style-name='Title'] => h1.title:fresh",
+            "p[style-name='Subtitle'] => h2.subtitle:fresh",
+            "r[style-name='Strong'] => strong:fresh",
+            "r[style-name='Emphasis'] => em:fresh",
+            "p[style-name='List Paragraph'] => li:fresh"
+          ],
+          ignoreEmptyParagraphs: false
+        }
+      );
+      
+      // Store original HTML for reference and set editable HTML
+      setOriginalHtml(htmlResult.value);
+      setResumeHtml(htmlResult.value);
+      
+      setIsEditMode(true);
+    } catch (err) {
+      console.error('Error extracting text:', err);
+      alert('Failed to extract text from document. You can still view it in the viewer.');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      setSaving(true);
+      
+      // Get the edited HTML content from the contentEditable div
+      const editedHtml = editorRef.current?.innerHTML || resumeHtml;
+      
+      // Update the stored HTML with edits
+      setResumeHtml(editedHtml);
+      
+      // Create a complete HTML document for conversion to Word
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body {
+              font-family: Calibri, Arial, sans-serif;
+              font-size: 11pt;
+              line-height: 1.5;
+              color: #000000;
+              margin: 1in;
+            }
+            h1 {
+              font-size: 16pt;
+              font-weight: bold;
+              margin-top: 12pt;
+              margin-bottom: 6pt;
+            }
+            h2 {
+              font-size: 14pt;
+              font-weight: bold;
+              margin-top: 12pt;
+              margin-bottom: 6pt;
+            }
+            h3 {
+              font-size: 12pt;
+              font-weight: bold;
+              margin-top: 10pt;
+              margin-bottom: 4pt;
+            }
+            p {
+              margin-top: 0;
+              margin-bottom: 8pt;
+            }
+            ul, ol {
+              margin-left: 0.5in;
+              margin-bottom: 8pt;
+            }
+            li {
+              margin-bottom: 4pt;
+            }
+            strong, b {
+              font-weight: bold;
+            }
+            em, i {
+              font-style: italic;
+            }
+          </style>
+        </head>
+        <body>
+          ${editedHtml}
+        </body>
+        </html>
+      `;
+      
+      // Convert HTML to Word document using html-docx-js
+      const htmlDocx = await import('html-docx-js-typescript');
+      const docBlob = await htmlDocx.asBlob(fullHtml);
+      
+      // Create URL for the modified document
+      const url = URL.createObjectURL(docBlob);
+      
+      // Clean up old modified URL if it exists
+      if (modifiedResumeUrl) {
+        URL.revokeObjectURL(modifiedResumeUrl);
+      }
+      
+      setModifiedResumeUrl(url);
+      setHasModifications(true);
+      setIsEditMode(false);
+      
+      alert('✅ Changes saved! The viewer now shows your updated resume.');
+    } catch (err) {
+      console.error('Error saving changes:', err);
+      alert('Failed to save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDownload = async () => {
-    if (!resume || !resumeUrl) return;
+    if (!resume) return;
 
     try {
       setSaving(true);
       
-      // Download the original file
-      const link = document.createElement('a');
-      link.href = resumeUrl;
-      link.download = resume.resume_file_name;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      alert('✅ Resume download started!');
+      // If there are modifications, download the modified version
+      if (hasModifications && modifiedResumeUrl) {
+        const { saveAs } = await import('file-saver');
+        const response = await fetch(modifiedResumeUrl);
+        const blob = await response.blob();
+        
+        // Use original filename or create a new one
+        const fileName = resume.resume_file_name.replace('.docx', '_edited.docx').replace('.doc', '_edited.doc');
+        saveAs(blob, fileName);
+        
+        alert('✅ Modified resume downloaded successfully!');
+      } else {
+        // Download the original file
+        if (!resumeUrl) return;
+        
+        const link = document.createElement('a');
+        link.href = resumeUrl;
+        link.download = resume.resume_file_name;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        alert('✅ Resume download started!');
+      }
     } catch (err) {
       console.error("Error downloading:", err);
       alert("Failed to download resume. Please try again.");
@@ -470,34 +629,188 @@ export default function AnalyzeResume() {
                         <p className="text-blue-100 text-sm mt-0.5 truncate max-w-md">{resume?.resume_file_name}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={handleDownload}
-                      disabled={saving}
-                      className="px-5 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 text-sm flex items-center gap-2 group"
-                    >
-                      <svg className="w-4 h-4 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {saving ? 'Downloading...' : 'Download'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {!isEditMode ? (
+                        <button
+                          onClick={extractTextFromWord}
+                          disabled={isExtracting}
+                          className="px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-all duration-200 disabled:opacity-50 text-sm flex items-center gap-2 border border-white/30"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          {isExtracting ? 'Loading...' : 'Edit'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setIsEditMode(false)}
+                          className="px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-all duration-200 text-sm flex items-center gap-2 border border-white/30"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View
+                        </button>
+                      )}
+                      <button
+                        onClick={handleDownload}
+                        disabled={saving}
+                        className="px-5 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 text-sm flex items-center gap-2 group"
+                      >
+                        <svg className="w-4 h-4 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        {saving ? 'Downloading...' : 'Download'}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="p-7">
                   {resumeUrl ? (
                     <div className="relative">
-                      {/* For Word documents, use Office Online Viewer or Google Docs Viewer */}
-                      {(resume?.resume_file_name?.endsWith('.doc') || resume?.resume_file_name?.endsWith('.docx')) ? (
-                        <iframe
-                          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resumeUrl)}`}
-                          className="w-full h-[900px] border-2 border-gray-100 rounded-2xl shadow-inner"
-                          title="Resume Viewer"
-                        />
+                      {isEditMode ? (
+                        // Edit Mode - Editable textarea
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              <span className="text-sm font-semibold text-amber-900">Edit Mode - Click on text to edit (formatting preserved)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setIsEditMode(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 text-sm"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleSaveChanges}
+                                disabled={saving}
+                                className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all duration-200 disabled:opacity-50 text-sm flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                {saving ? 'Saving...' : 'Save Changes'}
+                              </button>
+                            </div>
+                          </div>
+                          <div 
+                            ref={editorRef}
+                            contentEditable
+                            suppressContentEditableWarning
+                            className="w-full h-[850px] overflow-y-auto p-8 border-2 border-amber-200 rounded-2xl shadow-inner focus:border-amber-400 focus:ring-2 focus:ring-amber-200 focus:outline-none bg-white custom-scrollbar"
+                            style={{
+                              fontFamily: 'Calibri, Arial, sans-serif',
+                              fontSize: '11pt',
+                              lineHeight: '1.5',
+                              color: '#1f2937'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: resumeHtml }}
+                          />
+                        </div>
                       ) : (
-                        <iframe
-                          src={resumeUrl}
-                          className="w-full h-[900px] border-2 border-gray-100 rounded-2xl shadow-inner"
-                          title="Resume Viewer"
-                        />
+                        // View Mode - Show modified or original document
+                        <>
+                          {hasModifications && resumeHtml ? (
+                            // Show modified document as formatted HTML
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                  <span className="text-sm font-medium text-green-900">Viewing modified resume</span>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setHasModifications(false);
+                                    if (modifiedResumeUrl) {
+                                      URL.revokeObjectURL(modifiedResumeUrl);
+                                      setModifiedResumeUrl("");
+                                    }
+                                  }}
+                                  className="text-xs text-green-700 hover:text-green-900 font-medium underline"
+                                >
+                                  View Original
+                                </button>
+                              </div>
+                              <div className="w-full h-[870px] overflow-y-auto bg-white border-2 border-gray-100 rounded-2xl shadow-inner custom-scrollbar">
+                                <div className="max-w-4xl mx-auto bg-white p-12">
+                                  <style>{`
+                                    .resume-content h1 {
+                                      font-size: 1.5em;
+                                      font-weight: bold;
+                                      margin-top: 1.5em;
+                                      margin-bottom: 0.5em;
+                                      color: #1f2937;
+                                    }
+                                    .resume-content h2 {
+                                      font-size: 1.25em;
+                                      font-weight: bold;
+                                      margin-top: 1.2em;
+                                      margin-bottom: 0.4em;
+                                      color: #374151;
+                                    }
+                                    .resume-content h3 {
+                                      font-size: 1.1em;
+                                      font-weight: 600;
+                                      margin-top: 1em;
+                                      margin-bottom: 0.3em;
+                                      color: #4b5563;
+                                    }
+                                    .resume-content p {
+                                      margin-bottom: 0.75em;
+                                      line-height: 1.6;
+                                      color: #1f2937;
+                                    }
+                                    .resume-content strong, .resume-content b {
+                                      font-weight: 600;
+                                      color: #111827;
+                                    }
+                                    .resume-content em, .resume-content i {
+                                      font-style: italic;
+                                    }
+                                    .resume-content ul, .resume-content ol {
+                                      margin-left: 1.5em;
+                                      margin-bottom: 0.75em;
+                                    }
+                                    .resume-content li {
+                                      margin-bottom: 0.25em;
+                                      line-height: 1.6;
+                                    }
+                                    .resume-content a {
+                                      color: #2563eb;
+                                      text-decoration: underline;
+                                    }
+                                  `}</style>
+                                  <div 
+                                    className="resume-content"
+                                    dangerouslySetInnerHTML={{ __html: resumeHtml }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            // Show original document
+                            (resume?.resume_file_name?.endsWith('.doc') || resume?.resume_file_name?.endsWith('.docx')) ? (
+                              <iframe
+                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resumeUrl)}`}
+                                className="w-full h-[900px] border-2 border-gray-100 rounded-2xl shadow-inner"
+                                title="Resume Viewer"
+                              />
+                            ) : (
+                              <iframe
+                                src={resumeUrl}
+                                className="w-full h-[900px] border-2 border-gray-100 rounded-2xl shadow-inner"
+                                title="Resume Viewer"
+                              />
+                            )
+                          )}
+                        </>
                       )}
                       <div className="mt-5 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl shadow-sm">
                         <div className="flex items-start gap-3">
@@ -509,7 +822,11 @@ export default function AnalyzeResume() {
                           <div>
                             <p className="font-semibold text-blue-900 mb-1">Pro Tip</p>
                             <p className="text-sm text-blue-800 leading-relaxed">
-                              Review the AI suggestions on the left panel and apply them to your resume. Download the file to make edits in Microsoft Word, then re-upload for a new analysis.
+                              {isEditMode 
+                                ? 'Make your changes in the editor above and click "Save Changes" when done. Your edits will be shown in the viewer and included in downloads.'
+                                : hasModifications
+                                ? 'Your modifications are saved! You\'re now viewing the edited resume. Download to get the modified version, or click "Edit" to make more changes.'
+                                : 'Click the "Edit" button above to make changes directly, or review the AI suggestions on the left panel.'}
                             </p>
                           </div>
                         </div>
