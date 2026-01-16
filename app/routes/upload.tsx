@@ -74,6 +74,8 @@ export default function Upload() {
 
       // Step 3: Upload file to Supabase Storage
       const uploadResult = await uploadResumeFile(dbUser.id, selectedFile);
+      console.log('📤 Upload result:', uploadResult);
+      
       if (!uploadResult) {
         throw new Error("Failed to upload resume file");
       }
@@ -90,6 +92,8 @@ export default function Upload() {
         status: 'analyzing',
       });
 
+      console.log('📝 Resume record created:', resume);
+
       if (!resume) {
         throw new Error("Failed to create resume record");
       }
@@ -99,16 +103,19 @@ export default function Upload() {
       // Step 5: Analyze resume with AI
       let analysisResult;
       try {
+        console.log('🤖 Starting AI analysis...');
         analysisResult = await analyzeResume(
           selectedFile,
           jobTitle || undefined,
           jobDescription || undefined,
           false // Set to true for premium analysis
         );
+        console.log('✅ AI Analysis complete:', analysisResult);
       } catch (aiError) {
-        console.warn("AI analysis failed, using mock data:", aiError);
+        console.warn("⚠️ AI analysis failed, using mock data:", aiError);
         // Fallback to mock data if AI fails
         analysisResult = getMockAnalysis();
+        console.log('🎭 Using mock analysis:', analysisResult);
       }
 
       setProgress("Saving analysis results...");
@@ -132,15 +139,22 @@ export default function Upload() {
         aiModelUsed: analysisResult.modelUsed || 'gemini-flash',
       });
 
+      console.log('💾 Analysis saved:', saved);
+
       if (!saved) {
         throw new Error("Failed to save analysis results");
       }
+      
+      // Update resume with overall score and completed status
+      await updateResumeStatus(resume.id, 'completed', analysisResult.overallScore);
+
+      console.log('✅ Resume upload and analysis complete!');
 
       setSuccess("Resume analyzed successfully! Redirecting...");
       
-      // Redirect to home page after 2 seconds
+      // Redirect to analysis page to view and edit
       setTimeout(() => {
-        navigate("/");
+        navigate(`/analyze/${resume.id}`);
       }, 2000);
 
     } catch (err: any) {

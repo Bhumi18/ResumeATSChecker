@@ -4,10 +4,16 @@ import type { Route } from "./+types/home";
 import Navbar from "../components/Navbar";
 import ResumeCard from "../components/ResumeCard";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { getOrCreateUser, getUserResumes } from "../lib/database";
+import { getOrCreateUser, getUserResumes, getResumeWithAnalysis } from "../lib/database";
 import type { Database } from "../../types/database";
 
 type DatabaseResume = Database['public']['Tables']['resumes']['Row'];
+type DatabaseAnalysis = Database['public']['Tables']['resume_analysis']['Row'];
+
+interface ResumeWithAnalysis {
+  resume: DatabaseResume;
+  analysis: DatabaseAnalysis | null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -18,9 +24,22 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   const { user } = useUser();
-  const [resumes, setResumes] = useState<DatabaseResume[]>([]);
+  const [resumes, setResumes] = useState<ResumeWithAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'analyzing' | 'pending'>('all');
+
+  // Calculate stats
+  const stats = {
+    total: resumes.length,
+    avgScore: resumes.length > 0 
+      ? Math.round(resumes.reduce((sum, { resume }) => sum + (resume.overall_score || 0), 0) / resumes.length)
+      : 0,
+    completed: resumes.filter(({ resume }) => resume.status === 'completed').length,
+    analyzing: resumes.filter(({ resume }) => resume.status === 'analyzing').length,
+    highScoring: resumes.filter(({ resume }) => (resume.overall_score || 0) >= 80).length,
+  };
 
   useEffect(() => {
     async function loadResumes() {
@@ -53,7 +72,18 @@ export default function Home() {
 
         // Fetch user's resumes
         const userResumes = await getUserResumes(dbUser.id);
-        setResumes(userResumes);
+        console.log('📋 Loaded resumes:', userResumes);
+        
+        // Fetch analysis data for each resume
+        const resumesWithAnalysis = await Promise.all(
+          userResumes.map(async (resume) => {
+            const { analysis } = await getResumeWithAnalysis(resume.id);
+            return { resume, analysis };
+          })
+        );
+        
+        console.log('📊 Resumes with analysis:', resumesWithAnalysis);
+        setResumes(resumesWithAnalysis);
       } catch (err) {
         console.error("Error loading resumes:", err);
         setError("Failed to load resumes. Please check your database configuration.");
@@ -65,14 +95,123 @@ export default function Home() {
     loadResumes();
   }, [user]);
 
+  // Filter resumes based on search and status
+  const filteredResumes = resumes.filter(({ resume }) => {
+    const matchesSearch = searchTerm === "" || 
+      resume.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resume.job_title?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || resume.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <ProtectedRoute>
       <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen">
         <Navbar />
         <section className="main-section">
-          <div className="page-heading py-16">
-            <h1>Track Your Applications & Resume Ratings</h1>
-            <h2>Review your submissions and check AI-powered feedback.</h2>
+          {/* Hero Section */}
+          <div className="py-12 px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Welcome back, {user?.firstName || 'there'}! 👋
+              </h1>
+              <p className="text-lg text-gray-600 mb-8">
+                Track your job applications, analyze resume performance, and land your dream role
+              </p>
+            </div>
+
+            {/* Stats Cards */}
+            {!loading && resumes.length > 0 && (
+              <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">{stats.total}</div>
+                  <div className="text-sm text-gray-600">Total Applications</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="text-3xl font-bold text-green-600 mb-2">{stats.avgScore}</div>
+                  <div className="text-sm text-gray-600">Avg. ATS Score</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">{stats.highScoring}</div>
+                  <div className="text-sm text-gray-600">High Performers (80+)</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="text-3xl font-bold text-orange-600 mb-2">{stats.completed}</div>
+                  <div className="text-sm text-gray-600">Completed Analysis</div>
+                </div>
+              </div>
+            )}
+
+            {/* Search and Filter Bar */}
+            {!loading && resumes.length > 0 && (
+              <div className="max-w-6xl mx-auto mb-8">
+                <div className="bg-white rounded-xl p-4 shadow-md flex flex-col md:flex-row gap-4">
+                  {/* Search Input */}
+                  <div className="flex-1 relative">
+                    <svg
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search by company or role..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  {/* Filter Buttons */}
+                  <div className="flex gap-2 flex-wrap">
+                    {(['all', 'completed', 'analyzing', 'pending'] as const).map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setFilterStatus(status)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all capitalize ${
+                          filterStatus === status
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Upload Button */}
+                  <a
+                    href="/upload"
+                    className="px-6 py-2 primary-gradient text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    New Analysis
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {error && (
@@ -109,55 +248,168 @@ export default function Home() {
               </div>
             </div>
           ) : resumes.length > 0 ? (
-            <div className="resumes-section">
-              {resumes.map((resume) => (
-                <ResumeCard 
-                  key={resume.id} 
-                  resume={{
-                    id: resume.id,
-                    companyName: resume.company_name || undefined,
-                    jobTitle: resume.job_title || undefined,
-                    imagePath: resume.resume_thumbnail_url || "/images/resume_placeholder.png",
-                    resumePath: resume.resume_file_url,
-                    feedback: {
-                      overallScore: resume.overall_score || 0,
-                      ATS: { score: 0, tips: [] },
-                      toneAndStyle: { score: 0, tips: [] },
-                      content: { score: 0, tips: [] },
-                      structure: { score: 0, tips: [] },
-                      skills: { score: 0, tips: [] },
-                    },
-                  }} 
-                />
-              ))}
-            </div>
+            <>
+              {/* Results Header */}
+              <div className="max-w-6xl mx-auto px-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Your Applications
+                    <span className="ml-3 text-lg font-normal text-gray-500">
+                      ({filteredResumes.length} {filteredResumes.length === 1 ? 'result' : 'results'})
+                    </span>
+                  </h2>
+                </div>
+              </div>
+
+              {/* Resumes Grid */}
+              {filteredResumes.length > 0 ? (
+                <div className="resumes-section">
+                  {filteredResumes.map(({ resume, analysis }) => (
+                    <ResumeCard 
+                      key={resume.id} 
+                      resume={{
+                        id: resume.id,
+                        companyName: resume.company_name || undefined,
+                        jobTitle: resume.job_title || undefined,
+                        jobDescription: resume.job_description || undefined,
+                        status: resume.status,
+                        createdAt: resume.created_at,
+                        imagePath: resume.resume_thumbnail_url || "/images/pdf.png",
+                        resumePath: resume.resume_file_url,
+                        feedback: {
+                          overallScore: resume.overall_score || 0,
+                          ATS: { 
+                            score: analysis?.ats_score || 0, 
+                            tips: Array.isArray(analysis?.ats_tips) ? analysis.ats_tips as any : []
+                          },
+                          toneAndStyle: { 
+                            score: analysis?.tone_style_score || 0, 
+                            tips: Array.isArray(analysis?.tone_style_tips) ? analysis.tone_style_tips as any : []
+                          },
+                          content: { 
+                            score: analysis?.content_score || 0, 
+                            tips: Array.isArray(analysis?.content_tips) ? analysis.content_tips as any : []
+                          },
+                          structure: { 
+                            score: analysis?.structure_score || 0, 
+                            tips: Array.isArray(analysis?.structure_tips) ? analysis.structure_tips as any : []
+                          },
+                          skills: { 
+                            score: analysis?.skills_score || 0, 
+                            tips: Array.isArray(analysis?.skills_tips) ? analysis.skills_tips as any : []
+                          },
+                        },
+                      }} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="max-w-6xl mx-auto px-4">
+                  <div className="bg-white rounded-2xl shadow-md p-12 text-center">
+                    <svg
+                      className="mx-auto h-16 w-16 text-gray-300 mb-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      No matches found
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Try adjusting your search or filters
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setFilterStatus("all");
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 px-4">
-              <div className="bg-white rounded-2xl shadow-xl p-10 max-w-md text-center">
-                <svg
-                  className="mx-auto h-16 w-16 text-gray-400 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No Resumes Yet
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg
+                      className="w-10 h-10 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-3">
+                  Start Your Journey to Success
                 </h3>
-                <p className="text-gray-600 mb-6">
-                  Upload your first resume to get AI-powered ATS feedback
+                <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                  Upload your first resume and get instant AI-powered analysis. 
+                  Discover how your resume performs against ATS systems and get 
+                  actionable feedback to land more interviews.
                 </p>
+                
+                <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Upload Resume</h4>
+                      <p className="text-sm text-gray-600">Simply upload your PDF resume</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">AI Analysis</h4>
+                      <p className="text-sm text-gray-600">Get instant AI-powered insights</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Improve & Apply</h4>
+                      <p className="text-sm text-gray-600">Optimize and land interviews</p>
+                    </div>
+                  </div>
+                </div>
+
                 <a
                   href="/upload"
-                  className="inline-block px-6 py-3 primary-gradient text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                  className="inline-block px-8 py-4 primary-gradient text-white rounded-xl font-bold text-lg hover:shadow-2xl transition-all transform hover:-translate-y-1"
                 >
-                  Upload Resume
+                  Upload Your First Resume
                 </a>
               </div>
             </div>

@@ -48,8 +48,11 @@ interface Resume {
   id: string;
   companyName?: string;
   jobTitle?: string;
+  jobDescription?: string;
   imagePath: string;
   resumePath: string;
+  status?: 'pending' | 'analyzing' | 'completed' | 'failed';
+  createdAt?: string;
   feedback: Feedback;
 }
 

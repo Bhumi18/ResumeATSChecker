@@ -7,4 +7,5 @@ export default [
   route("sso-callback", "routes/sso-callback.tsx"),
   route("account", "routes/account.tsx"),
   route("upload", "routes/upload.tsx"),
+  route("analyze/:id", "routes/analyze.$id.tsx"),
 ] satisfies RouteConfig;

@@ -45,14 +45,34 @@ const GEMINI_MODELS = {
  */
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
+    console.log('📄 Starting PDF text extraction...', {
+      fileName: file.name,
+      fileSize: `${(file.size / 1024).toFixed(2)} KB`,
+      fileType: file.type
+    });
+
     // Dynamic import to avoid SSR issues
     const pdfjsLib = await import('pdfjs-dist');
     
-    // Set worker path
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    // Disable worker to avoid version mismatch issues - use main thread
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+    
+    console.log('🔧 PDF.js configured (no worker, main thread mode)');
+    console.log('🔧 PDF.js version:', pdfjsLib.version);
 
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    // Use disableWorker option
+    const loadingTask = pdfjsLib.getDocument({ 
+      data: arrayBuffer,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true
+    });
+    
+    const pdf = await loadingTask.promise;
+    
+    console.log(`📖 PDF loaded: ${pdf.numPages} pages`);
     
     let fullText = '';
     
@@ -63,11 +83,13 @@ export async function extractTextFromPDF(file: File): Promise<string> {
         .map((item: any) => item.str)
         .join(' ');
       fullText += pageText + '\n';
+      console.log(`✓ Extracted page ${i}/${pdf.numPages}`);
     }
     
+    console.log(`✅ PDF extraction complete: ${fullText.length} characters`);
     return fullText;
   } catch (error) {
-    console.error('Error extracting text from PDF:', error);
+    console.error('❌ Error extracting text from PDF:', error);
     throw new Error('Failed to extract text from PDF');
   }
 }
