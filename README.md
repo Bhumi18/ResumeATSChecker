@@ -1,87 +1,59 @@
-# Welcome to React Router!
+# Resume Analyzer
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Resume Analyzer helps you quickly evaluate a resume and get short, actionable feedback. It’s intended for recruiters, hiring managers, and candidates who want a fast, repeatable check of formatting, structure, and key content.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+Why this project
 
-## Features
+- Save time reviewing CVs by surfacing obvious improvements (formatting, missing sections, clarity of role descriptions).
+- Provide a simple numeric score plus a few short suggestions the candidate can act on.
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+How it works
 
-## Getting Started
+- Upload a PDF resume through the web interface.
+- The app extracts text, runs the analyzer (combining heuristic checks and model-driven scoring), and returns a score with bullet suggestions.
+- Results can be viewed in the UI and (optionally) persisted in the configured Supabase backend.
 
-### Installation
+Key features
 
-Install the dependencies:
+- PDF upload and text extraction
+- Readability, structure and keyword checks
+- Short, prioritized suggestions for improvement
+- Simple, extensible analyzer logic in `app/lib/`
+
+Quick start
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-### Development
-
-Start the development server with HMR:
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Open http://localhost:5173 in your browser.
 
-## Building for Production
-
-Create a production build:
+Build and preview:
 
 ```bash
 npm run build
+npm run preview
 ```
 
-## Deployment
+Important files
 
-### Docker Deployment
+- `app/` — source (routes, components, helpers)
+- `app/lib/ai-analyzer.ts` — analyzer logic and scoring rules
+- `app/routes/` — upload and result pages
 
-To build and run using Docker:
+Configuration & notes
 
-```bash
-docker build -t my-app .
+- See `QUICKSTART.md` and `SUPABASE_SETUP.md` for environment variables and external services like Supabase.
+- Uploaded files are processed server-side; review the configuration if you need to change storage or retention policies.
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
+Want more?
 
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+If you’d like, I can add example environment variables, a sample `.env` file, or deployment instructions for a target platform (Vercel, Netlify, Docker). Tell me which and I’ll expand the README.
