@@ -13,13 +13,6 @@ How it works
 - The app extracts text, runs the analyzer (combining heuristic checks and model-driven scoring), and returns a score with bullet suggestions.
 - Results can be viewed in the UI and (optionally) persisted in the configured Neon database backend.
 
-Key features
-
-- PDF upload and text extraction
-- Readability, structure and keyword checks
-- Short, prioritized suggestions for improvement
-- Simple, extensible analyzer logic in `app/lib/`
-
 Quick start
 
 Install dependencies:
