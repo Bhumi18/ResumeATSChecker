@@ -19,10 +19,11 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already signed in
   if (isSignedIn) {
     return <Navigate to="/" replace />;
   }
@@ -31,7 +32,6 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
 
-    // Validation
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -45,145 +45,277 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     const result = await signUp(email, password, firstName, lastName);
-    
+
     if (result.success) {
       navigate("/");
     } else {
       setError(result.error || "Sign up failed");
     }
-    
+
     setIsLoading(false);
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "12px 16px",
+    fontSize: "15px",
+    color: "#111827",
+    backgroundColor: "#f9fafb",
+    border: "1px solid #d1d5db",
+    borderRadius: "10px",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#374151",
+    marginBottom: "6px",
+  };
+
+  const EyeOff = () => (
+    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+    </svg>
+  );
+
+  const EyeOn = () => (
+    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  );
+
+  const toggleBtnStyle: React.CSSProperties = {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: "#9ca3af",
+    padding: "4px",
+    display: "flex",
+    alignItems: "center",
+  };
+
   return (
-    <main className="bg-[url('/images/bg-auth.svg')] bg-cover min-h-screen overflow-x-hidden">
-      <section className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
-        {/* Logo/Brand Section */}
-        <div className="text-center mb-5 max-w-2xl animate-in fade-in duration-500">
-          <div className="mb-2">
-            <Link to="/" className="inline-block">
-              <h1 className="text-5xl font-bold text-gradient mb-2">ATSChecker</h1>
-            </Link>
-          </div>
-          <p className="text-gray-400 text-lg">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        padding: "20px",
+        fontFamily: '"Mona Sans", ui-sans-serif, system-ui, sans-serif',
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "420px" }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <div
+              style={{
+                fontSize: "36px",
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "-1px",
+              }}
+            >
+              ATSChecker
+            </div>
+          </Link>
+          <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginTop: "8px" }}>
             Smart feedback for your dream job
           </p>
         </div>
 
-        {/* Sign Up Form */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 w-full max-w-md border border-white/20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-gray-300 mb-6">Start optimizing your resume today</p>
+        {/* Card */}
+        <div
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "16px",
+            padding: "40px 32px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "24px",
+              fontWeight: 700,
+              color: "#1a1a2e",
+              marginBottom: "4px",
+            }}
+          >
+            Create account
+          </div>
+          <p style={{ color: "#6b7280", fontSize: "14px", margin: "0 0 24px 0" }}>
+            Start optimizing your resume today
+          </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
+            <div
+              style={{
+                padding: "12px 16px",
+                backgroundColor: "#fef2f2",
+                border: "1px solid #fecaca",
+                borderRadius: "8px",
+                color: "#dc2626",
+                fontSize: "14px",
+                marginBottom: "20px",
+              }}
+            >
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
+            {/* Name row */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-200 mb-1">
-                  First Name
+                <label htmlFor="signup-first" style={labelStyle}>
+                  First name
                 </label>
                 <input
-                  id="firstName"
+                  id="signup-first"
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#606beb] focus:border-transparent"
+                  autoComplete="given-name"
                   placeholder="John"
+                  style={inputStyle}
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-200 mb-1">
-                  Last Name
+                <label htmlFor="signup-last" style={labelStyle}>
+                  Last name
                 </label>
                 <input
-                  id="lastName"
+                  id="signup-last"
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#606beb] focus:border-transparent"
+                  autoComplete="family-name"
                   placeholder="Doe"
+                  style={inputStyle}
                 />
               </div>
             </div>
 
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-1">
-                Email Address
+              <label htmlFor="signup-email" style={labelStyle}>
+                Email address
               </label>
               <input
-                id="email"
+                id="signup-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#606beb] focus:border-transparent"
+                autoComplete="email"
                 placeholder="you@example.com"
+                style={inputStyle}
               />
             </div>
 
+            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-1">
+              <label htmlFor="signup-password" style={labelStyle}>
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#606beb] focus:border-transparent"
-                placeholder="••••••••"
-              />
-              <p className="mt-1 text-xs text-gray-400">At least 8 characters</p>
+              <div style={{ position: "relative" }}>
+                <input
+                  id="signup-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  placeholder="Min. 8 characters"
+                  style={{ ...inputStyle, paddingRight: "48px" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  style={toggleBtnStyle}
+                >
+                  {showPassword ? <EyeOff /> : <EyeOn />}
+                </button>
+              </div>
             </div>
 
+            {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-200 mb-1">
-                Confirm Password
+              <label htmlFor="signup-confirm" style={labelStyle}>
+                Confirm password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#606beb] focus:border-transparent"
-                placeholder="••••••••"
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  id="signup-confirm"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  placeholder="Re-enter your password"
+                  style={{ ...inputStyle, paddingRight: "48px" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  tabIndex={-1}
+                  style={toggleBtnStyle}
+                >
+                  {showConfirmPassword ? <EyeOff /> : <EyeOn />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-[#8e98ff] to-[#606beb] text-white font-semibold rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                width: "100%",
+                padding: "14px",
+                fontSize: "16px",
+                fontWeight: 600,
+                color: "#fff",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                border: "none",
+                borderRadius: "10px",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.6 : 1,
+                marginTop: "4px",
+              }}
             >
               {isLoading ? "Creating account..." : "Create Account"}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-300">
-              Already have an account?{" "}
-              <Link to="/sign-in" className="text-[#8e98ff] hover:text-[#606beb] font-semibold">
-                Sign In
-              </Link>
-            </p>
+          <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#6b7280" }}>
+            Already have an account?{" "}
+            <Link to="/sign-in" style={{ color: "#667eea", fontWeight: 600, textDecoration: "none" }}>
+              Sign in
+            </Link>
           </div>
         </div>
 
-        {/* Back to Home */}
-        <Link
-          to="/"
-          className="mt-6 text-gray-300 hover:text-white transition-colors duration-200 flex items-center gap-2"
-        >
-          <span>←</span> Back to Home
-        </Link>
-      </section>
-    </main>
+        {/* Back link */}
+        <div style={{ textAlign: "center", marginTop: "24px" }}>
+          <Link to="/" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: "14px" }}>
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

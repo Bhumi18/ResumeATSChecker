@@ -23,29 +23,26 @@ body {
   @apply bg-white;
 }
 
-main {
+/* App-specific element defaults — scoped to .app-content to avoid auth pages */
+.app-content main {
   @apply min-h-screen pt-10;
 }
-h1 {
-  @apply text-6xl  text-gradient leading-tight tracking-[-2px] font-semibold;
+.app-content h1 {
+  @apply text-6xl text-gradient leading-tight tracking-[-2px] font-semibold;
 }
-
-h2 {
+.app-content h2 {
   @apply text-3xl text-dark-200;
 }
-
-label {
+.app-content label {
   @apply text-dark-200;
 }
-input {
+.app-content input {
   @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
 }
-
-textarea {
+.app-content textarea {
   @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
 }
-
-form {
+.app-content form {
   @apply flex flex-col items-start gap-8 w-full;
 }
 
