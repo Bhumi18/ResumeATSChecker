@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useUser, useAuth } from "../lib/auth-context";
 import { useNavigate } from "react-router";
 
 export default function ProfileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
-  const { signOut } = useClerk();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -39,8 +39,8 @@ export default function ProfileMenu() {
     if (user?.firstName) {
       return user.firstName[0].toUpperCase();
     }
-    if (user?.emailAddresses?.[0]?.emailAddress) {
-      return user.emailAddresses[0].emailAddress[0].toUpperCase();
+    if (user?.email) {
+      return user.email[0].toUpperCase();
     }
     return "U";
   };
@@ -88,7 +88,7 @@ export default function ProfileMenu() {
                     : user?.firstName || "User"}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {user?.emailAddresses?.[0]?.emailAddress || ""}
+                  {user?.email || ""}
                 </p>
               </div>
             </div>

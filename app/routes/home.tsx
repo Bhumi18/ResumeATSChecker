@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../lib/auth-context";
 import type { Route } from "./+types/home";
 import Navbar from "../components/Navbar";
 import ResumeCard from "../components/ResumeCard";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { getOrCreateUser, getUserResumes, getResumeWithAnalysis } from "../lib/database";
 import type { Database } from "../../types/database";
 
 type DatabaseResume = Database['public']['Tables']['resumes']['Row'];
@@ -47,46 +46,27 @@ export default function Home() {
 
       try {
         setLoading(true);
+        setError("");
         
-        // Check if Supabase is configured
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        
-        if (!supabaseUrl || !supabaseKey) {
-          setError("Database not configured. Please set up Supabase environment variables (see README.md)");
-          return;
-        }
-        
-        // Get or create user in database
-        const dbUser = await getOrCreateUser(user.id, {
-          email: user.primaryEmailAddress?.emailAddress || "",
-          firstName: user.firstName,
-          lastName: user.lastName,
-          profileImageUrl: user.imageUrl,
+        // Call API route to get resumes (server-side)
+        const params = new URLSearchParams({
+          userId: user.id,
+
         });
 
-        if (!dbUser) {
-          setError("Failed to connect to database. Please ensure Supabase is properly configured and the database schema is set up.");
-          return;
+        const response = await fetch(`/api/resumes?${params}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || 'Failed to load resumes');
         }
 
-        // Fetch user's resumes
-        const userResumes = await getUserResumes(dbUser.id);
-        console.log('📋 Loaded resumes:', userResumes);
-        
-        // Fetch analysis data for each resume
-        const resumesWithAnalysis = await Promise.all(
-          userResumes.map(async (resume) => {
-            const { analysis } = await getResumeWithAnalysis(resume.id);
-            return { resume, analysis };
-          })
-        );
-        
-        console.log('📊 Resumes with analysis:', resumesWithAnalysis);
-        setResumes(resumesWithAnalysis);
+        const data = await response.json();
+        console.log('📋 Loaded resumes:', data.resumes);
+        setResumes(data.resumes);
       } catch (err) {
         console.error("Error loading resumes:", err);
-        setError("Failed to load resumes. Please check your database configuration.");
+        setError(err instanceof Error ? err.message : "Failed to load resumes. Please check your database configuration.");
       } finally {
         setLoading(false);
       }
@@ -226,9 +206,9 @@ export default function Home() {
                   <div className="text-sm text-yellow-600">
                     <p className="font-medium mb-1">Quick setup steps:</p>
                     <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Create a Supabase account at <a href="https://supabase.com" target="_blank" rel="noopener" className="underline">supabase.com</a></li>
+                      <li>Create a Neon account at <a href="https://neon.tech" target="_blank" rel="noopener" className="underline">neon.tech</a></li>
                       <li>Run the database migration from <code className="bg-yellow-100 px-1 rounded">database/schema.sql</code></li>
-                      <li>Add your Supabase credentials to <code className="bg-yellow-100 px-1 rounded">.env</code> file</li>
+                      <li>Add your Neon database URL to <code className="bg-yellow-100 px-1 rounded">.env</code> file</li>
                       <li>Restart the dev server</li>
                     </ol>
                   </div>

@@ -11,7 +11,7 @@ How it works
 
 - Upload a PDF resume through the web interface.
 - The app extracts text, runs the analyzer (combining heuristic checks and model-driven scoring), and returns a score with bullet suggestions.
-- Results can be viewed in the UI and (optionally) persisted in the configured Supabase backend.
+- Results can be viewed in the UI and (optionally) persisted in the configured Neon database backend.
 
 Key features
 
@@ -51,8 +51,8 @@ Important files
 
 Configuration & notes
 
-- See `QUICKSTART.md` and `SUPABASE_SETUP.md` for environment variables and external services like Supabase.
-- Uploaded files are processed server-side; review the configuration if you need to change storage or retention policies.
+- See `QUICKSTART.md` and `NEON_SETUP.md` for environment variables and external services like Neon database.
+- Uploaded files are processed server-side and stored locally in `public/uploads/`; review the configuration in `app/lib/storage.ts` if you need to change to cloud storage.
 
 Want more?
 

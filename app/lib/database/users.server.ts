@@ -5,48 +5,22 @@ type User = Database['public']['Tables']['users']['Row'];
 type UserInsert = Database['public']['Tables']['users']['Insert'];
 
 /**
- * Get or create a user in database based on Clerk user data
+ * Get user by ID (used with custom auth)
  */
-export async function getOrCreateUser(clerkUserId: string, userData: {
+export async function getOrCreateUser(userId: string, userData: {
   email: string;
   firstName?: string | null;
   lastName?: string | null;
   profileImageUrl?: string | null;
 }): Promise<User | null> {
   try {
-    // Check if user exists
+    // Just fetch the user by ID
     const existingUser = await queryOne<User>(
-      `SELECT * FROM users WHERE clerk_user_id = $1`,
-      [clerkUserId]
+      `SELECT * FROM users WHERE id = $1`,
+      [userId]
     );
 
-    if (existingUser) {
-      return existingUser;
-    }
-
-    // Create new user if doesn't exist
-    const createdUsers = await query<User>(
-      `INSERT INTO users (clerk_user_id, email, first_name, last_name, profile_image_url)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [clerkUserId, userData.email, userData.firstName, userData.lastName, userData.profileImageUrl]
-    );
-
-    const createdUser = createdUsers[0];
-
-    if (!createdUser) {
-      console.error('Error creating user');
-      return null;
-    }
-
-    // Create default subscription for new user
-    await execute(
-      `INSERT INTO user_subscriptions (user_id, plan_type, resumes_limit, is_active)
-       VALUES ($1, $2, $3, $4)`,
-      [createdUser.id, 'free', 5, true]
-    );
-
-    return createdUser;
+    return existingUser;
   } catch (error) {
     console.error('Error in getOrCreateUser:', error);
     return null;

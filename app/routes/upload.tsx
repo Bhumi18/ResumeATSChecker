@@ -1,18 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../lib/auth-context";
 import type { Route } from "./+types/upload";
 import Navbar from "../components/Navbar";
 import FileUploader from "../components/FileUploader";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { uploadResumeFile } from "../lib/storage";
-import { analyzeResume, getMockAnalysis } from "../lib/ai-analyzer";
-import { 
-  getOrCreateUser, 
-  createResume, 
-  saveResumeAnalysis, 
-  updateResumeStatus
-} from "../lib/database";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -64,118 +56,42 @@ export default function Upload() {
     setLoading(true);
     setError("");
     setSuccess("");
-    setProgress("Checking subscription...");
+    setProgress("Uploading and analyzing resume...");
 
     try {
-      // Step 1: Get or create user in database
-      const dbUser = await getOrCreateUser(user.id, {
-        email: user.primaryEmailAddress?.emailAddress || "",
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profileImageUrl: user.imageUrl,
+      // Create FormData for API request
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('userId', user.id);
+      formData.append('companyName', companyName);
+      formData.append('jobTitle', jobTitle);
+      formData.append('jobDescription', jobDescription);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
       });
 
-      if (!dbUser) {
-        throw new Error("Failed to authenticate user");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Upload failed');
       }
 
-      // Step 2: Verify user (service is free for all users)
-      setProgress('Uploading resume...');
-
-      // Step 3: Upload file to Supabase Storage
-      const uploadResult = await uploadResumeFile(dbUser.id, selectedFile);
-      console.log('📤 Upload result:', uploadResult);
+      const data = await response.json();
       
-      if (!uploadResult) {
-        throw new Error("Failed to upload resume file");
-      }
-
-      setProgress("Creating resume record...");
-
-      // Step 4: Create resume record in database
-      const resume = await createResume(dbUser.id, {
-        company_name: companyName || null,
-        job_title: jobTitle || null,
-        job_description: jobDescription || null,
-        resume_file_url: uploadResult.url,
-        resume_file_name: selectedFile.name,
-        status: 'analyzing',
-      });
-
-      console.log('📝 Resume record created:', resume);
-
-      if (!resume) {
-        throw new Error("Failed to create resume record");
-      }
-
-      setProgress("Analyzing resume with AI...");
-
-      // Step 5: Analyze resume with AI
-      let analysisResult;
-      try {
-        console.log('🤖 Starting AI analysis...');
-        analysisResult = await analyzeResume(
-          selectedFile,
-          jobTitle || undefined,
-          jobDescription || undefined,
-          false // Set to true for premium analysis
-        );
-        console.log('✅ AI Analysis complete:', analysisResult);
-      } catch (aiError) {
-        console.warn("⚠️ AI analysis failed, using mock data:", aiError);
-        // Fallback to mock data if AI fails
-        analysisResult = getMockAnalysis();
-        console.log('🎭 Using mock analysis:', analysisResult);
-      }
-
-      setProgress("Saving analysis results...");
-
-      // Step 6: Save analysis results
-      const saved = await saveResumeAnalysis(resume.id, {
-        atsScore: analysisResult.atsScore,
-        atsTips: analysisResult.atsTips,
-        toneStyleScore: analysisResult.toneStyleScore,
-        toneStyleTips: analysisResult.toneStyleTips,
-        contentScore: analysisResult.contentScore,
-        contentTips: analysisResult.contentTips,
-        structureScore: analysisResult.structureScore,
-        structureTips: analysisResult.structureTips,
-        skillsScore: analysisResult.skillsScore,
-        skillsTips: analysisResult.skillsTips,
-        keywordsFound: analysisResult.keywordsFound,
-        keywordsMissing: analysisResult.keywordsMissing,
-        sectionsFound: analysisResult.sectionsFound,
-        sectionsMissing: analysisResult.sectionsMissing,
-        aiModelUsed: analysisResult.modelUsed || 'gemini-flash',
-      });
-
-      console.log('💾 Analysis saved:', saved);
-
-      if (!saved) {
-        throw new Error("Failed to save analysis results");
-      }
+      setSuccess("✅ Resume analyzed successfully!");
+      setProgress("");
       
-      // Update resume with overall score and completed status
-      await updateResumeStatus(resume.id, 'completed', analysisResult.overallScore);
-
-      console.log('✅ Resume upload and analysis complete!');
-
-      setSuccess("Resume analyzed successfully! Redirecting...");
-      
-      // Redirect to analysis page to view and edit
+      // Navigate to  analysis page after a brief delay
       setTimeout(() => {
-        navigate(`/analyze/${resume.id}`);
-      }, 2000);
-
-    } catch (err: any) {
+        navigate(`/analyze/${data.resumeId}`);
+      }, 1500);
+    } catch (err) {
       console.error("Error analyzing resume:", err);
-      setError(err.message || "Failed to analyze resume. Please try again.");
-      
-      // If we have a resume ID, mark it as failed
-      // This would require storing the resume ID in state
+      setError(err instanceof Error ? err.message : "Failed to analyze resume. Please try again.");
+      setProgress("");
     } finally {
       setLoading(false);
-      setProgress("");
     }
   };
 

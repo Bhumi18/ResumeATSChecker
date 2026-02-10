@@ -12,31 +12,37 @@ export interface Database {
       users: {
         Row: {
           id: string
-          clerk_user_id: string
+          clerk_user_id: string | null
           email: string
           first_name: string | null
           last_name: string | null
           profile_image_url: string | null
+          password_hash: string | null
+          username: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          clerk_user_id: string
+          clerk_user_id?: string | null
           email: string
           first_name?: string | null
           last_name?: string | null
           profile_image_url?: string | null
+          password_hash?: string | null
+          username?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          clerk_user_id?: string
+          clerk_user_id?: string | null
           email?: string
           first_name?: string | null
           last_name?: string | null
           profile_image_url?: string | null
+          password_hash?: string | null
+          username?: string | null
           created_at?: string
           updated_at?: string
         }

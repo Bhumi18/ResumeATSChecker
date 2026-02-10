@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../lib/auth-context";
 import type { Route } from "./+types/analyze.$id";
 import Navbar from "../components/Navbar";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { getResumeWithAnalysis, updateResumeStatus } from "../lib/database";
-import { getSignedResumeUrl } from "../lib/storage";
 import { generateOptimizedResume, reAnalyzeResume } from "../lib/ai-analyzer";
 import type { Database } from "../../types/database";
 
@@ -46,7 +44,14 @@ export default function AnalyzeResume() {
 
       try {
         setLoading(true);
-        const data = await getResumeWithAnalysis(id);
+        
+        const response = await fetch(`/api/analyze?id=${id}`);
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Failed to load resume');
+        }
+        
+        const data = await response.json();
         
         console.log('📄 Resume analysis loaded:', data);
         
@@ -58,41 +63,8 @@ export default function AnalyzeResume() {
         setResume(data.resume);
         setAnalysis(data.analysis);
         
-        // Get signed URL for private bucket access
-        if (data.resume.resume_file_url) {
-          // Try to extract the storage path from various URL formats
-          let filePath = '';
-          
-          // Format 1: Full URL with /storage/v1/object/public/resumes/
-          if (data.resume.resume_file_url.includes('/storage/v1/object/public/resumes/')) {
-            filePath = data.resume.resume_file_url.split('/storage/v1/object/public/resumes/')[1];
-          }
-          // Format 2: Full URL with /resumes/
-          else if (data.resume.resume_file_url.includes('/resumes/')) {
-            filePath = data.resume.resume_file_url.split('/resumes/')[1];
-          }
-          // Format 3: Just the path (userId/filename)
-          else {
-            filePath = data.resume.resume_file_url;
-          }
-          
-          console.log('📁 Extracted file path:', filePath);
-          console.log('🔗 Original URL:', data.resume.resume_file_url);
-          
-          if (filePath) {
-            const signedUrl = await getSignedResumeUrl(filePath, 3600); // 1 hour expiry
-            console.log('🔐 Generated signed URL:', signedUrl);
-            
-            if (signedUrl) {
-              setResumeUrl(signedUrl);
-            } else {
-              console.warn('⚠️ Failed to generate signed URL, using original URL');
-              setResumeUrl(data.resume.resume_file_url);
-            }
-          } else {
-            console.warn('⚠️ Could not extract file path, using original URL');
-            setResumeUrl(data.resume.resume_file_url);
-          }
+        if (data.resumeUrl) {
+          setResumeUrl(data.resumeUrl);
         }
       } catch (err) {
         console.error("Error loading resume:", err);

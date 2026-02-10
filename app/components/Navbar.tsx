@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { Link } from "react-router";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../lib/auth-context";
 import ProfileMenu from "./ProfileMenu";
 
 const Navbar: () => JSX.Element = () => {

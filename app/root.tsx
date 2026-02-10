@@ -6,7 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { AuthProvider } from "./lib/auth-context";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -43,16 +43,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-  if (!publishableKey) {
-    throw new Error("Missing Clerk Publishable Key");
-  }
-
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    <AuthProvider>
       <Outlet />
-    </ClerkProvider>
+    </AuthProvider>
   );
 }
 

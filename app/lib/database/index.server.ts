@@ -1,4 +1,4 @@
-export { getOrCreateUser, updateUserProfile, getUserByClerkId } from './users';
+export { getOrCreateUser, updateUserProfile, getUserByClerkId } from './users.server';
 export {
   createResume,
   getUserResumes,
@@ -6,10 +6,10 @@ export {
   updateResumeStatus,
   deleteResume,
   saveResumeAnalysis,
-} from './resumes';
+} from './resumes.server';
 export {
   getUserSubscription,
   canAnalyzeResume,
   incrementResumeCount,
   updateSubscriptionPlan,
-} from './subscriptions';
+} from './subscriptions.server';
