@@ -4,6 +4,8 @@ export default [
   index("routes/home.tsx"),
   route("sign-in", "routes/sign-in.tsx"),
   route("sign-up", "routes/sign-up.tsx"),
+  route("forgot-password", "routes/forgot-password.tsx"),
+  route("reset-password", "routes/reset-password.tsx"),
   route("account", "routes/account.tsx"),
   route("upload", "routes/upload.tsx"),
   route("analyze/:id", "routes/analyze.$id.tsx"),
@@ -16,5 +18,8 @@ export default [
   route("api/auth/signout", "routes/api.auth.signout.tsx"),
   route("api/auth/me", "routes/api.auth.me.tsx"),
   route("api/auth/update-profile", "routes/api.auth.update-profile.tsx"),
+  route("api/auth/forgot-password", "routes/api.auth.forgot-password.tsx"),
+  route("api/auth/reset-password", "routes/api.auth.reset-password.tsx"),
   route("api/migrate-auth", "routes/api.migrate-auth.tsx"),
+  route("api/migrate-password-reset", "routes/api.migrate-password-reset.tsx"),
 ] satisfies RouteConfig;

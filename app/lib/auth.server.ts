@@ -325,3 +325,114 @@ export async function updateUserProfile(
     return null;
   }
 }
+
+/**
+ * Password Reset Functions
+ */
+
+const RESET_TOKEN_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Generate a secure random reset token
+ */
+function generateResetToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Create a password reset token for a user
+ */
+export async function createPasswordResetToken(
+  email: string,
+  ipAddress?: string
+): Promise<{ token: string; userId: string } | null> {
+  try {
+    // Find user by email
+    const user = await getUserByEmail(email);
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return null;
+    }
+    
+    // Generate reset token
+    const token = generateResetToken();
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_DURATION);
+    
+    // Delete any existing unused tokens for this user
+    await execute(
+      `DELETE FROM password_reset_tokens WHERE user_id = $1 AND used_at IS NULL`,
+      [user.id]
+    );
+    
+    // Create new reset token
+    await execute(
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at, ip_address)
+       VALUES ($1, $2, $3, $4)`,
+      [user.id, token, expiresAt.toISOString(), ipAddress || null]
+    );
+    
+    return { token, userId: user.id };
+  } catch (error) {
+    console.error('Error creating password reset token:', error);
+    return null;
+  }
+}
+
+/**
+ * Validate a password reset token
+ */
+export async function validateResetToken(token: string): Promise<string | null> {
+  try {
+    const result = await queryOne<{ user_id: string }>(
+      `SELECT user_id FROM password_reset_tokens 
+       WHERE token = $1 
+       AND expires_at > NOW() 
+       AND used_at IS NULL 
+       LIMIT 1`,
+      [token]
+    );
+    
+    return result?.user_id || null;
+  } catch (error) {
+    console.error('Error validating reset token:', error);
+    return null;
+  }
+}
+
+/**
+ * Reset password using a valid token
+ */
+export async function resetPasswordWithToken(
+  token: string,
+  newPassword: string
+): Promise<boolean> {
+  try {
+    // Validate token and get user ID
+    const userId = await validateResetToken(token);
+    if (!userId) {
+      return false;
+    }
+    
+    // Update password
+    const success = await updateUserPassword(userId, newPassword);
+    if (!success) {
+      return false;
+    }
+    
+    // Mark token as used
+    await execute(
+      `UPDATE password_reset_tokens SET used_at = NOW() WHERE token = $1`,
+      [token]
+    );
+    
+    // Optionally: Delete all sessions for this user (force re-login)
+    await deleteAllUserSessions(userId);
+    
+    return true;
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return false;
+  }
+}

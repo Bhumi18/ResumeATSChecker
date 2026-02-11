@@ -1,23 +1,20 @@
-import type { Route } from "./+types/sign-in";
+import type { Route } from "./+types/forgot-password";
 import { useAuth } from "../lib/auth-context";
-import { Navigate, useNavigate, Link } from "react-router";
+import { Navigate, Link } from "react-router";
 import { useState, type FormEvent } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Sign In - ATSChecker" },
-    { name: "description", content: "Sign in to your ATSChecker account" },
+    { title: "Forgot Password - ATSChecker" },
+    { name: "description", content: "Reset your ATSChecker password" },
   ];
 }
 
-export default function SignInPage() {
-  const { isSignedIn, signIn } = useAuth();
-  const navigate = useNavigate();
-
+export default function ForgotPasswordPage() {
+  const { isSignedIn } = useAuth();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   if (isSignedIn) {
@@ -27,17 +24,29 @@ export default function SignInPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess(false);
     setIsLoading(true);
 
-    const result = await signIn(email, password);
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
 
-    if (result.success) {
-      navigate("/");
-    } else {
-      setError(result.error || "Sign in failed");
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess(true);
+        setEmail("");
+      } else {
+        setError(data.error || "Failed to process request");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const inputStyle: React.CSSProperties = {
@@ -111,10 +120,10 @@ export default function SignInPage() {
               marginBottom: "4px",
             }}
           >
-            Welcome back
+            Forgot password?
           </div>
           <p style={{ color: "#6b7280", fontSize: "14px", margin: "0 0 24px 0" }}>
-            Sign in to your account to continue
+            Enter your email and we'll send you a reset link
           </p>
 
           {error && (
@@ -133,16 +142,32 @@ export default function SignInPage() {
             </div>
           )}
 
+          {success && (
+            <div
+              style={{
+                padding: "12px 16px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "8px",
+                color: "#15803d",
+                fontSize: "14px",
+                marginBottom: "20px",
+              }}
+            >
+              Password reset link sent! Check your email (or console in dev mode).
+            </div>
+          )}
+
           <form
             onSubmit={handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: "20px", alignItems: "stretch" }}
           >
             <div>
-              <label htmlFor="signin-email" style={labelStyle}>
+              <label htmlFor="forgot-email" style={labelStyle}>
                 Email address
               </label>
               <input
-                id="signin-email"
+                id="forgot-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -151,66 +176,6 @@ export default function SignInPage() {
                 placeholder="you@example.com"
                 style={inputStyle}
               />
-            </div>
-
-            <div>
-              <label htmlFor="signin-password" style={labelStyle}>
-                Password
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  id="signin-password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  style={{ ...inputStyle, paddingRight: "48px" }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#9ca3af",
-                    padding: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  {showPassword ? (
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <div style={{ textAlign: "right", marginTop: "8px" }}>
-                <Link 
-                  to="/forgot-password" 
-                  style={{ 
-                    color: "#667eea", 
-                    fontSize: "13px", 
-                    textDecoration: "none",
-                    fontWeight: 500
-                  }}
-                >
-                  Forgot password?
-                </Link>
-              </div>
             </div>
 
             <button
@@ -232,14 +197,14 @@ export default function SignInPage() {
                 boxSizing: "border-box",
               }}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
 
           <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#6b7280" }}>
-            Don't have an account?{" "}
-            <Link to="/sign-up" style={{ color: "#667eea", fontWeight: 600, textDecoration: "none" }}>
-              Sign up
+            Remember your password?{" "}
+            <Link to="/sign-in" style={{ color: "#667eea", fontWeight: 600, textDecoration: "none" }}>
+              Sign in
             </Link>
           </div>
         </div>
