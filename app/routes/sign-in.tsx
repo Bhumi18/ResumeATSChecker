@@ -41,6 +41,7 @@ export default function SignInPage() {
   };
 
   const inputStyle: React.CSSProperties = {
+    display: "block",
     width: "100%",
     padding: "12px 16px",
     fontSize: "15px",
@@ -50,6 +51,7 @@ export default function SignInPage() {
     borderRadius: "10px",
     outline: "none",
     boxSizing: "border-box",
+    margin: 0,
   };
 
   const labelStyle: React.CSSProperties = {
@@ -133,7 +135,7 @@ export default function SignInPage() {
 
           <form
             onSubmit={handleSubmit}
-            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+            style={{ display: "flex", flexDirection: "column", gap: "20px", alignItems: "stretch" }}
           >
             <div>
               <label htmlFor="signin-email" style={labelStyle}>
@@ -202,6 +204,7 @@ export default function SignInPage() {
               type="submit"
               disabled={isLoading}
               style={{
+                display: "block",
                 width: "100%",
                 padding: "14px",
                 fontSize: "16px",
@@ -213,6 +216,7 @@ export default function SignInPage() {
                 cursor: isLoading ? "not-allowed" : "pointer",
                 opacity: isLoading ? 0.6 : 1,
                 marginTop: "4px",
+                boxSizing: "border-box",
               }}
             >
               {isLoading ? "Signing in..." : "Sign In"}

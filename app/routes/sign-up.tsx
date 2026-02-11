@@ -56,6 +56,7 @@ export default function SignUpPage() {
   };
 
   const inputStyle: React.CSSProperties = {
+    display: "block",
     width: "100%",
     padding: "12px 16px",
     fontSize: "15px",
@@ -65,6 +66,7 @@ export default function SignUpPage() {
     borderRadius: "10px",
     outline: "none",
     boxSizing: "border-box",
+    margin: 0,
   };
 
   const labelStyle: React.CSSProperties = {
@@ -175,7 +177,7 @@ export default function SignUpPage() {
 
           <form
             onSubmit={handleSubmit}
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+            style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "stretch" }}
           >
             {/* Name row */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -284,6 +286,7 @@ export default function SignUpPage() {
               type="submit"
               disabled={isLoading}
               style={{
+                display: "block",
                 width: "100%",
                 padding: "14px",
                 fontSize: "16px",
@@ -295,6 +298,7 @@ export default function SignUpPage() {
                 cursor: isLoading ? "not-allowed" : "pointer",
                 opacity: isLoading ? 0.6 : 1,
                 marginTop: "4px",
+                boxSizing: "border-box",
               }}
             >
               {isLoading ? "Creating account..." : "Create Account"}
