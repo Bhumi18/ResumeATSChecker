@@ -20,6 +20,9 @@ export default [
   route("api/auth/update-profile", "routes/api.auth.update-profile.tsx"),
   route("api/auth/forgot-password", "routes/api.auth.forgot-password.tsx"),
   route("api/auth/reset-password", "routes/api.auth.reset-password.tsx"),
+  route("api/auth/google", "routes/api.auth.google.tsx"),
+  route("api/auth/google/callback", "routes/api.auth.google.callback.tsx"),
   route("api/migrate-auth", "routes/api.migrate-auth.tsx"),
   route("api/migrate-password-reset", "routes/api.migrate-password-reset.tsx"),
+  route("api/migrate-oauth", "routes/api.migrate-oauth.tsx"),
 ] satisfies RouteConfig;

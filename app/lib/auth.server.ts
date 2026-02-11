@@ -436,3 +436,158 @@ export async function resetPasswordWithToken(
     return false;
   }
 }
+
+/**
+ * OAuth Functions
+ */
+
+type OAuthAccount = {
+  id: string;
+  user_id: string;
+  provider: string;
+  provider_account_id: string;
+  access_token: string | null;
+  refresh_token: string | null;
+  expires_at: string | null;
+};
+
+/**
+ * Find or create user from OAuth provider data
+ */
+export async function findOrCreateOAuthUser(
+  provider: string,
+  profile: {
+    id: string;
+    email: string;
+    name?: string;
+    given_name?: string;
+    family_name?: string;
+    picture?: string;
+  },
+  tokens: {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    id_token?: string;
+    scope?: string;
+  }
+): Promise<User | null> {
+  try {
+    // Check if OAuth account already exists
+    const oauthAccount = await queryOne<OAuthAccount>(
+      `SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_account_id = $2 LIMIT 1`,
+      [provider, profile.id]
+    );
+
+    let user: User | null = null;
+
+    if (oauthAccount) {
+      // Get existing user
+      user = await getUserById(oauthAccount.user_id);
+      
+      // Update OAuth tokens
+      const expiresAt = tokens.expires_in 
+        ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+        : null;
+      
+      await execute(
+        `UPDATE oauth_accounts 
+         SET access_token = $1, refresh_token = $2, expires_at = $3, updated_at = NOW()
+         WHERE id = $4`,
+        [tokens.access_token, tokens.refresh_token || null, expiresAt, oauthAccount.id]
+      );
+    } else {
+      // Check if user exists with this email
+      user = await getUserByEmail(profile.email);
+
+      if (!user) {
+        // Create new user
+        const firstName = profile.given_name || profile.name?.split(' ')[0] || null;
+        const lastName = profile.family_name || profile.name?.split(' ').slice(1).join(' ') || null;
+        const username = profile.email.split('@')[0];
+
+        user = await queryOne<User>(
+          `INSERT INTO users (email, username, first_name, last_name, profile_image_url, clerk_user_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING *`,
+          [
+            profile.email,
+            username,
+            firstName,
+            lastName,
+            profile.picture || null,
+            `${provider}_${profile.id}`
+          ]
+        );
+      }
+
+      if (!user) {
+        return null;
+      }
+
+      // Link OAuth account to user
+      const expiresAt = tokens.expires_in 
+        ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+        : null;
+
+      await execute(
+        `INSERT INTO oauth_accounts 
+         (user_id, provider, provider_account_id, access_token, refresh_token, expires_at, id_token, scope)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          user.id,
+          provider,
+          profile.id,
+          tokens.access_token,
+          tokens.refresh_token || null,
+          expiresAt,
+          tokens.id_token || null,
+          tokens.scope || null
+        ]
+      );
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Error finding/creating OAuth user:', error);
+    return null;
+  }
+}
+
+/**
+ * Get OAuth account for a user
+ */
+export async function getOAuthAccount(
+  userId: string,
+  provider: string
+): Promise<OAuthAccount | null> {
+  try {
+    return await queryOne<OAuthAccount>(
+      `SELECT * FROM oauth_accounts WHERE user_id = $1 AND provider = $2 LIMIT 1`,
+      [userId, provider]
+    );
+  } catch (error) {
+    console.error('Error getting OAuth account:', error);
+    return null;
+  }
+}
+
+/**
+ * Unlink OAuth account from user
+ */
+export async function unlinkOAuthAccount(
+  userId: string,
+  provider: string
+): Promise<boolean> {
+  try {
+    await execute(
+      `DELETE FROM oauth_accounts WHERE user_id = $1 AND provider = $2`,
+      [userId, provider]
+    );
+    return true;
+  } catch (error) {
+    console.error('Error unlinking OAuth account:', error);
+    return false;
+  }
+}
+
