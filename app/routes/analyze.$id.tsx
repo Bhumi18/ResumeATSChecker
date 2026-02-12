@@ -176,87 +176,7 @@ export default function AnalyzeResume() {
       // Update the stored HTML with edits
       setResumeHtml(editedHtml);
       
-      // Create a complete HTML document for conversion to Word
-      const fullHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body {
-              font-family: Calibri, Arial, sans-serif;
-              font-size: 11pt;
-              line-height: 1.5;
-              color: #000000;
-              margin: 1in;
-            }
-            h1 {
-              font-size: 16pt;
-              font-weight: bold;
-              margin-top: 12pt;
-              margin-bottom: 6pt;
-            }
-            h2 {
-              font-size: 14pt;
-              font-weight: bold;
-              margin-top: 12pt;
-              margin-bottom: 6pt;
-            }
-            h3 {
-              font-size: 12pt;
-              font-weight: bold;
-              margin-top: 10pt;
-              margin-bottom: 4pt;
-            }
-            p {
-              margin-top: 0;
-              margin-bottom: 8pt;
-            }
-            ul, ol {
-              margin-left: 0.5in;
-              margin-bottom: 8pt;
-            }
-            li {
-              margin-bottom: 4pt;
-            }
-            strong, b {
-              font-weight: bold;
-            }
-            em, i {
-              font-style: italic;
-            }
-          </style>
-        </head>
-        <body>
-          ${editedHtml}
-        </body>
-        </html>
-      `;
-      
-      // Convert HTML to Word document using html-docx-js
-      const htmlDocx = await import('html-docx-js-typescript');
-      const docBlob = await htmlDocx.asBlob(fullHtml) as any;
-      
-      // Ensure it's a Blob object - convert if needed
-      let blobToUse: Blob;
-      if (docBlob instanceof Blob) {
-        blobToUse = docBlob;
-      } else {
-        // Handle Buffer type by converting to Blob
-        blobToUse = new Blob([Buffer.from(docBlob)] as any, { 
-          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-        });
-      }
-      
-      // Create URL for the modified document
-      const url = URL.createObjectURL(blobToUse);
-      
-      // Clean up old modified URL if it exists
-      if (modifiedResumeUrl) {
-        URL.revokeObjectURL(modifiedResumeUrl);
-      }
-      
-      setModifiedResumeUrl(url);
+      // Store the edited HTML - will convert to Word on download
       setHasModifications(true);
       setIsEditMode(false);
       
@@ -500,31 +420,35 @@ export default function AnalyzeResume() {
 
     try {
       setSaving(true);
+      const { saveAs } = await import('file-saver');
       
-      // If there are modifications, download the modified version
-      if (hasModifications && modifiedResumeUrl) {
-        const { saveAs } = await import('file-saver');
-        const response = await fetch(modifiedResumeUrl);
-        const blob = await response.blob();
-        
-        // Use original filename or create a new one
-        const fileName = resume.resume_file_name.replace('.docx', '_edited.docx').replace('.doc', '_edited.doc');
-        saveAs(blob, fileName);
-        
-        alert('✅ Modified resume downloaded successfully!');
+      // Always use the professional format endpoint
+      const response = await fetch('/api/update-resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resumeId: id,
+          editedHtml: hasModifications ? resumeHtml : null,
+          originalFileName: resume.resume_file_name,
+          useOriginal: !hasModifications,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate resume');
+      }
+      
+      const blob = await response.blob();
+      const fileName = hasModifications 
+        ? resume.resume_file_name.replace(/\.(docx|doc)$/i, '_modified.docx')
+        : resume.resume_file_name;
+      
+      saveAs(blob, fileName);
+      
+      if (hasModifications) {
+        alert('✅ Modified resume downloaded in professional format!');
       } else {
-        // Download the original file
-        if (!resumeUrl) return;
-        
-        const link = document.createElement('a');
-        link.href = resumeUrl;
-        link.download = resume.resume_file_name;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        alert('✅ Resume download started!');
+        alert('✅ Resume downloaded in professional format!');
       }
     } catch (err) {
       console.error("Error downloading:", err);

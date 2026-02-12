@@ -12,6 +12,7 @@ export default [
   route("api/resumes", "routes/api.resumes.tsx"),
   route("api/upload", "routes/api.upload.tsx"),
   route("api/analyze", "routes/api.analyze.tsx"),
+  route("api/update-resume", "routes/api.update-resume.tsx"),
   route("api/test-db", "routes/api.test-db.tsx"),
   route("api/auth/signup", "routes/api.auth.signup.tsx"),
   route("api/auth/signin", "routes/api.auth.signin.tsx"),
