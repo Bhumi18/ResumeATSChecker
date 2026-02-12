@@ -65,6 +65,11 @@ export default function AnalyzeResume() {
         
         if (data.resumeUrl) {
           setResumeUrl(data.resumeUrl);
+          
+          // Auto-extract Word documents to HTML for viewing
+          if (data.resume.resume_file_name?.endsWith('.docx') || data.resume.resume_file_name?.endsWith('.doc')) {
+            await autoExtractWordDocument(data.resumeUrl);
+          }
         }
       } catch (err) {
         console.error("Error loading resume:", err);
@@ -76,6 +81,40 @@ export default function AnalyzeResume() {
 
     loadResumeAnalysis();
   }, [id]);
+
+  // Auto-extract Word document content when page loads
+  const autoExtractWordDocument = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      const mammoth = await import('mammoth');
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      const htmlResult = await mammoth.convertToHtml(
+        { arrayBuffer },
+        {
+          styleMap: [
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh",
+            "p[style-name='Heading 3'] => h3:fresh",
+            "p[style-name='Title'] => h1.title:fresh",
+            "p[style-name='Subtitle'] => h2.subtitle:fresh",
+            "r[style-name='Strong'] => strong:fresh",
+            "r[style-name='Emphasis'] => em:fresh",
+            "p[style-name='List Paragraph'] => li:fresh"
+          ],
+          ignoreEmptyParagraphs: false
+        }
+      );
+      
+      setOriginalHtml(htmlResult.value);
+      setResumeHtml(htmlResult.value);
+    } catch (err) {
+      console.error('Error auto-extracting Word document:', err);
+      // Silently fail, user can still click Edit button to try again
+    }
+  };
 
 
 
@@ -915,12 +954,75 @@ export default function AnalyzeResume() {
                           ) : (
                             // Show original document
                             (resume?.resume_file_name?.endsWith('.doc') || resume?.resume_file_name?.endsWith('.docx')) ? (
-                              <iframe
-                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resumeUrl)}`}
-                                className="w-full h-[900px] border-2 border-gray-100 rounded-2xl shadow-inner"
-                                title="Resume Viewer"
-                              />
+                              // Render Word documents as HTML
+                              resumeHtml ? (
+                                <div className="w-full h-[870px] overflow-y-auto bg-white border-2 border-gray-100 rounded-2xl shadow-inner custom-scrollbar">
+                                  <div className="max-w-4xl mx-auto bg-white p-12">
+                                    <style>{`
+                                      .resume-content h1 {
+                                        font-size: 1.5em;
+                                        font-weight: bold;
+                                        margin-top: 1.5em;
+                                        margin-bottom: 0.5em;
+                                        color: #1f2937;
+                                      }
+                                      .resume-content h2 {
+                                        font-size: 1.25em;
+                                        font-weight: bold;
+                                        margin-top: 1.2em;
+                                        margin-bottom: 0.4em;
+                                        color: #374151;
+                                      }
+                                      .resume-content h3 {
+                                        font-size: 1.1em;
+                                        font-weight: 600;
+                                        margin-top: 1em;
+                                        margin-bottom: 0.3em;
+                                        color: #4b5563;
+                                      }
+                                      .resume-content p {
+                                        margin-bottom: 0.75em;
+                                        line-height: 1.6;
+                                        color: #1f2937;
+                                      }
+                                      .resume-content strong, .resume-content b {
+                                        font-weight: 600;
+                                        color: #111827;
+                                      }
+                                      .resume-content em, .resume-content i {
+                                        font-style: italic;
+                                      }
+                                      .resume-content ul, .resume-content ol {
+                                        margin-left: 1.5em;
+                                        margin-bottom: 0.75em;
+                                      }
+                                      .resume-content li {
+                                        margin-bottom: 0.25em;
+                                        line-height: 1.6;
+                                      }
+                                      .resume-content a {
+                                        color: #2563eb;
+                                        text-decoration: underline;
+                                      }
+                                    `}</style>
+                                    <div 
+                                      className="resume-content"
+                                      dangerouslySetInnerHTML={{ __html: resumeHtml }}
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="w-full h-[900px] border-2 border-gray-200 rounded-lg flex items-center justify-center bg-gray-50">
+                                  <div className="text-center space-y-4">
+                                    <svg className="mx-auto h-12 w-12 text-gray-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <p className="text-gray-600">Loading document...</p>
+                                  </div>
+                                </div>
+                              )
                             ) : (
+                              // PDF - Use browser's native viewer
                               <iframe
                                 src={resumeUrl}
                                 className="w-full h-[900px] border-2 border-gray-100 rounded-2xl shadow-inner"
