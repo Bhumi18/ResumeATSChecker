@@ -36,8 +36,8 @@ interface EmbeddingResult {
 
 // Available Gemini models
 const GEMINI_MODELS = {
-  FLASH: 'gemini-2.0-flash-exp',
-  PRO: 'gemini-2.0-flash-exp',
+  FLASH: 'gemini-flash-latest',
+  PRO: 'gemini-pro-latest',
   EMBEDDING: 'text-embedding-004',
 } as const;
 
@@ -204,6 +204,7 @@ Focus on:
 Provide 3-5 actionable tips per category.`;
 
   try {
+    console.log(`🚀 Calling Gemini Flash API: ${GEMINI_MODELS.FLASH}`);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODELS.FLASH}:generateContent?key=${apiKey}`,
       {
@@ -313,6 +314,7 @@ Perform DEEP analysis on:
 Provide 5-8 highly actionable, specific tips per category with examples.`;
 
   try {
+    console.log(`🚀 Calling Gemini Pro API: ${GEMINI_MODELS.PRO}`);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODELS.PRO}:generateContent?key=${apiKey}`,
       {
@@ -480,6 +482,49 @@ export async function analyzeResume(
     }
   } catch (error) {
     console.error('Error in analyzeResume:', error);
+    throw error;
+  }
+}
+
+/**
+ * Analyze resume from text (for re-analysis after editing)
+ */
+export async function analyzeResumeText(
+  resumeText: string,
+  jobTitle?: string,
+  jobDescription?: string
+): Promise<ResumeAnalysisResult> {
+  const apiKey = import.meta.env.VITE_GOOGLE_AI_STUDIO_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google AI Studio API key not configured. Please set VITE_GOOGLE_AI_STUDIO_API_KEY in your .env file');
+  }
+
+  if (!resumeText || resumeText.trim().length < 100) {
+    throw new Error('Resume text is too short or empty');
+  }
+
+  try {
+    console.log('🔄 Analyzing resume text...');
+    // Use Flash for fast re-analysis
+    try {
+      console.log('Trying Gemini Flash...');
+      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
+    } catch (flashError: any) {
+      // If Flash fails (quota/rate limit), fallback to Pro
+      console.warn('Gemini Flash failed, falling back to Pro:', flashError.message);
+      console.log('Retrying with Gemini Pro...');
+      try {
+        return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
+      } catch (proError: any) {
+        console.error('Both Gemini Flash and Pro failed:', proError.message);
+        // Last resort: return a simple re-calculated analysis
+        console.warn('Using simplified analysis as fallback...');
+        throw new Error('AI analysis temporarily unavailable. Please try again in a moment.');
+      }
+    }
+  } catch (error) {
+    console.error('Error in analyzeResumeText:', error);
     throw error;
   }
 }

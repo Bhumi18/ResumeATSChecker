@@ -1,4 +1,5 @@
-import { getResumeWithAnalysis } from "../lib/database/index.server";
+import { getResumeWithAnalysis, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
+import { analyzeResumeText } from "../lib/ai-analyzer";
 
 export async function loader({ request }: { request: Request }) {
   try {
@@ -27,6 +28,115 @@ export async function loader({ request }: { request: Request }) {
     console.error('Error in analyze API:', error);
     return Response.json({
       error: 'Failed to load resume',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
+
+// POST handler for re-analysis
+export async function action({ request }: { request: Request }) {
+  try {
+    const body = await request.json();
+    const { resumeId, resumeText, jobDescription, jobTitle, reanalyze } = body;
+
+    console.log('🔄 API action called for re-analysis');
+    console.log('📝 Resume ID:', resumeId);
+    console.log('📄 Text length:', resumeText?.length);
+
+    if (!resumeId || !resumeText) {
+      console.error('❌ Missing required fields');
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    console.log('🔄 Starting resume analysis...');
+
+    // Analyze the edited resume text
+    let analysis;
+    try {
+      analysis = await analyzeResumeText(
+        resumeText,
+        jobTitle || '',
+        jobDescription || ''
+      );
+    } catch (analysisError: any) {
+      console.error('❌ Analysis failed:', analysisError);
+      throw new Error(`Analysis failed: ${analysisError.message}`);
+    }
+
+    console.log('📊 Analysis results:');
+    console.log('  - ATS Score:', analysis.atsScore);
+    console.log('  - Tone/Style Score:', analysis.toneStyleScore);
+    console.log('  - Content Score:', analysis.contentScore);
+    console.log('  - Structure Score:', analysis.structureScore);
+    console.log('  - Skills Score:', analysis.skillsScore);
+
+    // Calculate overall score
+    const overallScore = Math.round(
+      (analysis.atsScore +
+        analysis.toneStyleScore +
+        analysis.contentScore +
+        analysis.structureScore +
+        analysis.skillsScore) / 5
+    );
+    
+    console.log('🎯 Overall Score:', overallScore);
+
+    // Save the new analysis to database
+    console.log('💾 Saving analysis to database...');
+    try {
+      const saved = await saveResumeAnalysis(resumeId, {
+        atsScore: analysis.atsScore,
+        atsTips: analysis.atsTips,
+        toneStyleScore: analysis.toneStyleScore,
+        toneStyleTips: analysis.toneStyleTips,
+        contentScore: analysis.contentScore,
+        contentTips: analysis.contentTips,
+        structureScore: analysis.structureScore,
+        structureTips: analysis.structureTips,
+        skillsScore: analysis.skillsScore,
+        skillsTips: analysis.skillsTips,
+        keywordsFound: analysis.keywordsFound,
+        keywordsMissing: analysis.keywordsMissing,
+        sectionsFound: analysis.sectionsFound,
+        sectionsMissing: analysis.sectionsMissing,
+      });
+
+      if (!saved) {
+        throw new Error('Failed to save analysis to database');
+      }
+      console.log('✅ Analysis saved successfully');
+    } catch (dbError: any) {
+      console.error('❌ Database save failed:', dbError);
+      throw new Error(`Database error: ${dbError.message}`);
+    }
+
+    // Update resume status and score
+    console.log('🔄 Updating resume status...');
+    try {
+      await updateResumeStatus(resumeId, 'completed', overallScore);
+      console.log('✅ Resume status updated');
+    } catch (statusError: any) {
+      console.error('❌ Status update failed:', statusError);
+      // Don't throw here, analysis is already saved
+    }
+
+    // Fetch updated data
+    console.log('📥 Fetching updated data...');
+    const updatedData = await getResumeWithAnalysis(resumeId);
+
+    console.log('✅ Re-analysis complete!');
+    console.log('📤 Returning updated data with score:', updatedData.resume?.overall_score);
+
+    return Response.json({
+      success: true,
+      analysis: updatedData.analysis,
+      resume: updatedData.resume,
+      message: 'Resume re-analyzed successfully',
+    });
+  } catch (error) {
+    console.error('❌ Error in re-analysis:', error);
+    return Response.json({
+      error: 'Failed to re-analyze resume',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

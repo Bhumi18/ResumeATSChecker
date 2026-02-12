@@ -36,6 +36,10 @@ export default function AnalyzeResume() {
   const [modifiedResumeUrl, setModifiedResumeUrl] = useState<string>("");
   const [hasModifications, setHasModifications] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const [completedSuggestions, setCompletedSuggestions] = useState<Set<string>>(new Set());
+  const [previousScore, setPreviousScore] = useState<number | null>(null);
+  const [showScoreImprovement, setShowScoreImprovement] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -256,12 +260,140 @@ export default function AnalyzeResume() {
       setHasModifications(true);
       setIsEditMode(false);
       
-      alert('✅ Changes saved! The viewer now shows your updated resume.');
+      // Re-analyze the resume with the new content
+      console.log('💾 Changes saved, starting re-analysis...');
+      await reAnalyzeEditedResume(editedHtml);
+      
+      console.log('✅ All done!');
     } catch (err) {
       console.error('Error saving changes:', err);
       alert('Failed to save changes. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Re-analyze resume after user edits
+  const reAnalyzeEditedResume = async (editedHtml: string) => {
+    if (!resume || !id) {
+      console.warn('⚠️ Cannot re-analyze: missing resume or id');
+      return;
+    }
+
+    try {
+      setIsReanalyzing(true);
+      
+      // Extract plain text from HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = editedHtml;
+      const extractedText = tempDiv.textContent || tempDiv.innerText || '';
+
+      console.log('🔄 Re-analyzing edited resume...');
+      console.log('📝 Resume ID:', id);
+      console.log('📄 Text length:', extractedText.length);
+      console.log('💼 Job Title:', resume.job_title);
+      console.log('📋 Job Description:', resume.job_description?.substring(0, 100) + '...');
+      
+      // Store previous score for comparison
+      const prevScore = resume.overall_score || analysis?.ats_score || 0;
+      console.log('📊 Previous score:', prevScore);
+      setPreviousScore(prevScore);
+
+      // Call the re-analysis API
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeId: id,
+          resumeText: extractedText,
+          jobDescription: resume.job_description || '',
+          jobTitle: resume.job_title || '',
+          reanalyze: true,
+        }),
+      });
+
+      console.log('📡 API Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Re-analysis failed:', errorData);
+        throw new Error(errorData.error || 'Re-analysis failed');
+      }
+
+      const result = await response.json();
+      console.log('✅ Re-analysis result:', result);
+
+      if (result.success && result.analysis) {
+        console.log('📊 New ATS score:', result.analysis.ats_score);
+        console.log('🎯 New overall score:', result.resume?.overall_score);
+        
+        // Compare with previous analysis to find completed suggestions
+        const newCompleted = new Set<string>();
+        
+        // Check which keywords were added
+        if (analysis?.keywords_missing && result.analysis.keywords_missing) {
+          const previousMissing = analysis.keywords_missing;
+          const currentMissing = result.analysis.keywords_missing;
+          previousMissing.forEach((keyword: string) => {
+            if (!currentMissing.includes(keyword)) {
+              newCompleted.add(`keyword:${keyword}`);
+              console.log('✅ Added keyword:', keyword);
+            }
+          });
+        }
+
+        // Check which sections were added
+        if (analysis?.sections_missing && result.analysis.sections_missing) {
+          const previousMissing = analysis.sections_missing;
+          const currentMissing = result.analysis.sections_missing;
+          previousMissing.forEach((section: string) => {
+            if (!currentMissing.includes(section)) {
+              newCompleted.add(`section:${section}`);
+              console.log('✅ Added section:', section);
+            }
+          });
+        }
+
+        console.log('🎉 Completed suggestions:', newCompleted.size);
+        setCompletedSuggestions(newCompleted);
+        setAnalysis(result.analysis);
+        
+        // Update resume with new score
+        if (result.resume) {
+          console.log('🔄 Updating resume state with new score:', result.resume.overall_score);
+          setResume(result.resume);
+        }
+        
+        // Show score improvement animation
+        const newScore = result.resume?.overall_score || result.analysis.ats_score;
+        console.log(`📈 Score comparison: ${prevScore} → ${newScore}`);
+        
+        if (prevScore && newScore > prevScore) {
+          console.log('🎊 Score improved! Showing animation');
+          setShowScoreImprovement(true);
+          setTimeout(() => setShowScoreImprovement(false), 3000);
+          
+          // Show success message
+          setTimeout(() => {
+            alert(`🎉 Great job! Your ATS score improved from ${prevScore} to ${newScore}!`);
+          }, 500);
+        } else if (newScore === prevScore) {
+          alert('✅ Changes saved! Your score remains the same.');
+        } else {
+          alert('✅ Changes saved and re-analyzed!');
+        }
+
+        console.log('✅ Re-analysis complete!');
+      } else {
+        console.error('❌ No analysis data in result:', result);
+      }
+    } catch (err) {
+      console.error('❌ Error re-analyzing resume:', err);
+      alert('Failed to re-analyze resume. Please check the console for details.');
+    } finally {
+      setIsReanalyzing(false);
     }
   };
 
@@ -518,9 +650,22 @@ export default function AnalyzeResume() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/30">
+                <div className="relative flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/30">
                   <span className="text-sm text-white/80 font-medium">Score:</span>
-                  <span className="text-2xl font-bold text-white">{resume.overall_score || 0}</span>
+                  <span className={`text-2xl font-bold text-white transition-all duration-500 ${showScoreImprovement ? 'scale-125' : 'scale-100'}`}>
+                    {resume.overall_score || 0}
+                  </span>
+                  {showScoreImprovement && previousScore && resume.overall_score && resume.overall_score > previousScore && (
+                    <div className="absolute -top-8 right-0 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce shadow-lg">
+                      +{resume.overall_score - previousScore} 🎉
+                    </div>
+                  )}
+                  {isReanalyzing && (
+                    <svg className="w-4 h-4 text-white animate-spin ml-1" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
                 </div>
                 <button
                   onClick={handleMatchResume}
@@ -547,6 +692,23 @@ export default function AnalyzeResume() {
             </div>
           </div>
         </div>
+
+        {/* Success notification for completed suggestions */}
+        {completedSuggestions.size > 0 && (
+          <div className="max-w-[1800px] mx-auto px-6 mt-4">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 animate-fade-in">
+              <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1">
+                <p className="font-semibold text-lg">Great job! 🎉</p>
+                <p className="text-sm text-green-50">
+                  You've addressed {completedSuggestions.size} suggestion{completedSuggestions.size > 1 ? 's' : ''} and improved your resume!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="max-w-[1800px] mx-auto px-6 py-8">
@@ -679,14 +841,26 @@ export default function AnalyzeResume() {
                           </div>
                           <p className="text-sm text-red-700 mb-3">💡 Consider adding these to improve ATS score</p>
                           <div className="flex flex-wrap gap-2">
-                            {analysis.keywords_missing.map((keyword: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium"
-                              >
-                                {keyword}
-                              </span>
-                            ))}
+                            {analysis.keywords_missing.map((keyword: string, idx: number) => {
+                              const isCompleted = completedSuggestions.has(`keyword:${keyword}`);
+                              return (
+                                <span
+                                  key={idx}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1.5 ${
+                                    isCompleted 
+                                      ? 'bg-green-100 text-green-800 border-2 border-green-300 line-through' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {isCompleted && (
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                  {keyword}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -728,14 +902,26 @@ export default function AnalyzeResume() {
                           </div>
                           <p className="text-sm text-red-700 mb-3">📝 Add these to strengthen your resume</p>
                           <div className="flex flex-wrap gap-2">
-                            {analysis.sections_missing.map((section: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium"
-                              >
-                                {section}
-                              </span>
-                            ))}
+                            {analysis.sections_missing.map((section: string, idx: number) => {
+                              const isCompleted = completedSuggestions.has(`section:${section}`);
+                              return (
+                                <span
+                                  key={idx}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1.5 ${
+                                    isCompleted
+                                      ? 'bg-green-100 text-green-800 border-2 border-green-300 line-through'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {isCompleted && (
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                  {section}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -845,13 +1031,32 @@ export default function AnalyzeResume() {
                               </button>
                               <button
                                 onClick={handleSaveChanges}
-                                disabled={saving}
+                                disabled={saving || isReanalyzing}
                                 className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all duration-200 disabled:opacity-50 text-sm flex items-center gap-2"
                               >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {isReanalyzing ? (
+                                  <>
+                                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Re-analyzing...
+                                  </>
+                                ) : saving ? (
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Saving...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Save & Re-analyze
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
