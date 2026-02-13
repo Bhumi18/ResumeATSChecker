@@ -1,5 +1,5 @@
 /**
- * AI Resume Analyzer Service
+ * ATSEngine - AI Resume Analyzer Service
  * 
  * This service integrates with Google AI Studio (Gemini models)
  * to analyze resumes and provide ATS-compliant feedback.

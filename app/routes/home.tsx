@@ -16,8 +16,8 @@ interface ResumeWithAnalysis {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "ATSChecker" },
-    { name: "description", content: "Smart feedback for your dream job!" },
+    { title: "ATSEngine - Engineering Your Resume for ATS Success" },
+    { name: "description", content: "Engineering Your Resume for ATS Success" },
   ];
 }
 

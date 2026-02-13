@@ -8,7 +8,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Upload Resume - ATSChecker" },
+    { title: "Upload Resume - ATSEngine" },
     { name: "description", content: "Upload your resume for ATS analysis" },
   ];
 }

@@ -1,5 +1,7 @@
 {
-  "name": "ai-resume-analyzer",
+  "name": "atsengine",
+  "version": "1.0.0",
+  "description": "Engineering Your Resume for ATS Success - AI-powered resume analysis tool",
   "private": true,
   "type": "module",
   "scripts": {

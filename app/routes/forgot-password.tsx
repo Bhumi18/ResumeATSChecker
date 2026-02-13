@@ -5,8 +5,8 @@ import { useState, type FormEvent } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Forgot Password - ATSChecker" },
-    { name: "description", content: "Reset your ATSChecker password" },
+    { title: "Forgot Password - ATSEngine" },
+    { name: "description", content: "Reset your ATSEngine password" },
   ];
 }
 
@@ -95,11 +95,11 @@ export default function ForgotPasswordPage() {
                 letterSpacing: "-1px",
               }}
             >
-              ATSChecker
+              ATSEngine
             </div>
           </Link>
           <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginTop: "8px" }}>
-            Smart feedback for your dream job
+            Engineering Your Resume for ATS Success
           </p>
         </div>
 

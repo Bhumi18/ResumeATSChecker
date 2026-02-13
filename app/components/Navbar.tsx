@@ -9,7 +9,7 @@ const Navbar: () => JSX.Element = () => {
   return (
     <nav className="navbar backdrop-blur-lg bg-white/80 shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <Link to="/" className="hover:scale-105 transition-transform duration-200">
-        <p className="text-2xl font-bold text-gradient">ATSChecker</p>
+        <p className="text-2xl font-bold text-gradient">ATSEngine</p>
       </Link>
       <div className="flex items-center gap-3">
         {isSignedIn && (

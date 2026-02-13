@@ -1,5 +1,5 @@
 -- =============================================
--- ATS Resume Analyzer Database Schema
+-- ATSEngine Database Schema
 -- =============================================
 
 -- Enable UUID extension

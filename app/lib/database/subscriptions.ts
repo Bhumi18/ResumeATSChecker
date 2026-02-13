@@ -20,7 +20,7 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
 
 /**
  * Check if user can analyze more resumes
- * Note: ATS checker is now free for all users with unlimited analyses
+ * Note: ATSEngine is now free for all users with unlimited analyses
  */
 export async function canAnalyzeResume(userId: string): Promise<{
   allowed: boolean;
@@ -28,7 +28,7 @@ export async function canAnalyzeResume(userId: string): Promise<{
   limit: number;
 }> {
   try {
-    // ATS checker is free for all users - unlimited analyses
+    // ATSEngine is free for all users - unlimited analyses
     return {
       allowed: true,
       remaining: 999,

@@ -5,8 +5,8 @@ import { useState, type FormEvent } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Sign In - ATSChecker" },
-    { name: "description", content: "Sign in to your ATSChecker account" },
+    { title: "Sign In - ATSEngine" },
+    { name: "description", content: "Sign in to your ATSEngine account - Engineering Your Resume for ATS Success" },
   ];
 }
 
@@ -86,11 +86,11 @@ export default function SignInPage() {
                 letterSpacing: "-1px",
               }}
             >
-              ATSChecker
+              ATSEngine
             </div>
           </Link>
           <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginTop: "8px" }}>
-            Smart feedback for your dream job
+            Engineering Your Resume for ATS Success
           </p>
         </div>
 

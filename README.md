@@ -1,6 +1,8 @@
-# Resume Analyzer
+# ATSEngine
 
-Resume Analyzer helps you quickly evaluate a resume and get short, actionable feedback. It’s intended for recruiters, hiring managers, and candidates who want a fast, repeatable check of formatting, structure, and key content.
+**Engineering Your Resume for ATS Success**
+
+ATSEngine helps you quickly evaluate a resume and get short, actionable feedback. It’s intended for recruiters, hiring managers, and candidates who want a fast, repeatable check of formatting, structure, and key content.
 
 Why this project
 

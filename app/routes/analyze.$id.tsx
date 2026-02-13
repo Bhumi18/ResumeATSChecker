@@ -12,7 +12,7 @@ type DatabaseAnalysis = Database['public']['Tables']['resume_analysis']['Row'];
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Resume Analysis - ATSChecker" },
+    { title: "Resume Analysis - ATSEngine" },
     { name: "description", content: "Review and edit your resume with AI suggestions" },
   ];
 }
