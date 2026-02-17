@@ -36,7 +36,7 @@ The problem isn't you—it's your resume format. Up to **75% of resumes never re
 ## ✨ Key Features
 
 ### 🤖 AI-Powered Analysis
-Uses advanced AI (OpenAI GPT-4 or Google Gemini) to analyze your resume like a professional recruiter would, providing detailed feedback across 5 critical dimensions.
+Uses advanced AI to analyze your resume like a professional recruiter would, providing detailed feedback across 5 critical dimensions.
 
 ### 📊 Comprehensive Scoring System
 Your resume is evaluated on:
@@ -177,185 +177,9 @@ An **Applicant Tracking System** is software used by employers to:
 
 ---
 
-## 🏗️ Project Structure
-
-```
-ai-resume-analyzer/
-├── app/
-│   ├── components/          # React UI components
-│   │   ├── FileUploader.tsx
-│   │   ├── ResumeCard.tsx
-│   │   └── ScoreCircle.tsx
-│   ├── lib/
-│   │   ├── ai-analyzer.ts   # Core AI analysis logic
-│   │   ├── neon.server.ts   # Database connection
-│   │   ├── storage.server.ts # File handling
-│   │   └── database/        # Database queries
-│   └── routes/              # Application pages
-│       ├── home.tsx         # Landing page
-│       ├── upload.tsx       # Resume upload
-│       ├── analyze.$id.tsx  # Results page
-│       └── api.*.tsx        # API endpoints
-├── database/
-│   └── schema.sql           # Database schema
-├── public/
-│   └── uploads/             # Uploaded resumes
-└── types/                   # TypeScript definitions
-```
-
-**Key Files to Explore**:
-- [app/lib/ai-analyzer.ts](app/lib/ai-analyzer.ts) - AI analysis implementation
-- [app/routes/upload.tsx](app/routes/upload.tsx) - Resume upload interface
-- [app/routes/analyze.$id.tsx](app/routes/analyze.$id.tsx) - Results display
-- [database/schema.sql](database/schema.sql) - Database structure
-
----
-
-## ⚙️ Configuration & Customization
-
-### Adjust AI Analysis Criteria
-
-Edit [app/lib/ai-analyzer.ts](app/lib/ai-analyzer.ts) to customize:
-- Scoring weights for different categories
-- Keywords and skills to prioritize
-- Analysis prompts and feedback style
-- Industry-specific criteria
-
-### Change Storage Location
-
-By default, resumes are stored in `public/uploads/`. To use cloud storage (AWS S3, Supabase Storage, etc.), modify [app/lib/storage.server.ts](app/lib/storage.server.ts).
-
-### Database Options
-
-- **Neon** (Recommended) - Serverless PostgreSQL, see [NEON_SETUP.md](./NEON_SETUP.md)
-- **Supabase** - PostgreSQL + Storage + Auth, see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
-
----
-
-## 🛠️ Troubleshooting
-
-### AI Analysis Returns Mock/Fallback Data
-
-**Cause**: API key missing or AI service unavailable  
-**Solution**: 
-1. Check your `.env` file has the correct API key
-2. Verify the API key has available credits/quota
-3. Check the AI provider's status page for outages
-
-### Database Connection Errors
-
-**Cause**: Database credentials incorrect or database not set up  
-**Solution**: 
-1. Verify `DATABASE_URL` in `.env` file
-2. Ensure database schema is created (run `schema.sql`)
-3. Check database logs for connection errors
-4. Verify your IP is allowed (some databases have IP restrictions)
-
-### File Upload Fails
-
-**Cause**: Storage directory permissions or file size limits  
-**Solution**:
-1. Ensure `public/uploads/` directory exists and is writable
-2. Check file size (default max is 10MB)
-3. Verify PDF format is valid
-4. Check browser console for detailed error messages
-
-### Resume Score is 0 or Very Low
-
-**Common Reasons**:
-- PDF text extraction failed (scanned image PDF)
-- Resume has complex formatting that ATS can't parse
-- Missing standard sections (Education, Experience, Skills)
-- No keywords matching common job requirements
-
-For more help, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
-
----
-
-## 📚 Additional Documentation
-
-- [START_HERE.md](./START_HERE.md) - Complete first-time setup guide
-- [QUICKSTART.md](./QUICKSTART.md) - Fast deployment guide  
-- [NEON_SETUP.md](./NEON_SETUP.md) - Neon database configuration
-- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Supabase alternative setup
-- [GOOGLE_AI_SETUP.md](./GOOGLE_AI_SETUP.md) - Google AI (Gemini) integration
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Technical architecture details
-- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - Common issues and solutions
-
----
-
-## 🤝 Contributing
-
-We welcome contributions from the community! If you have ideas for improvements:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Make your changes with clear commit messages
-4. Test thoroughly
-5. Push to the branch (`git push origin feature/AmazingFeature`)
-6. Open a Pull Request with a clear description
-
-### Ideas for Contributions
-- Add support for DOCX format
-- Improve AI prompt engineering for better analysis
-- Add more ATS-friendly resume templates
-- Implement LinkedIn profile import
-- Add multi-language support
-- Create browser extension
-
----
-
-## 📈 Roadmap
-
-Future enhancements we're planning:
-
-- [ ] Resume templates library optimized for ATS
-- [ ] Cover letter analysis and generation  
-- [ ] LinkedIn profile optimization
-- [ ] Job description analyzer tool
-- [ ] Batch analysis for multiple applications
-- [ ] Resume comparison across versions
-- [ ] Integration with job boards (Indeed, LinkedIn, Glassdoor)
-- [ ] Mobile app (iOS/Android)
-- [ ] Email notifications for completed analyses
-- [ ] Export analysis reports as PDF
-- [ ] Interview preparation based on resume
-- [ ] Salary estimation based on skills and experience
-
----
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- **React Router** - Modern routing framework
-- **Neon/Supabase** - Serverless database infrastructure
-- **OpenAI/Google AI** - AI-powered analysis capabilities
-- **pdf.js** - PDF parsing and text extraction
-- **Remix** - Full stack web framework
-- All contributors and users helping improve this tool
-
----
-
-## 💬 Support & Community
-
-- **Issues**: Found a bug? [Open an issue](https://github.com/yourusername/atsengine/issues)
-- **Discussions**: Have questions? [Start a discussion](https://github.com/yourusername/atsengine/discussions)
-- **Contributions**: Want to help? See [Contributing](#-contributing) section
-
----
-
-## 🎯 Success Stories
-
-> "ATSEngine helped me identify that my resume was missing key technical keywords. After optimization, I got 3x more interview calls!" - **Sarah M., Software Engineer**
-
-> "I was applying to dozens of jobs with no response. This tool showed me my formatting was completely breaking ATS parsing. Fixed it and got 2 interviews the next week!" - **David L., Marketing Manager**
-
-> "As a recent graduate, I had no idea what ATS even was. This tool educated me and helped me land my first job!" - **Emily R., Data Analyst**
 
 ---
 
@@ -364,8 +188,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Ready to land your dream job?**
 
 ⭐ **Star this repo** if ATSEngine helped you!
-
-🚀 **[Get Started Now](#-quick-start-for-developers)** | 📖 **[Read the Docs](./START_HERE.md)** | 🐛 **[Report a Bug](https://github.com/yourusername/atsengine/issues)**
 
 Made with ❤️ for job seekers everywhere
 
