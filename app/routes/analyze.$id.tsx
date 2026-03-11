@@ -35,6 +35,8 @@ export default function AnalyzeResume() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [modifiedResumeUrl, setModifiedResumeUrl] = useState<string>("");
   const [hasModifications, setHasModifications] = useState(false);
+  const [isSavingToSystem, setIsSavingToSystem] = useState(false);
+  const [savedToSystem, setSavedToSystem] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [completedSuggestions, setCompletedSuggestions] = useState<Set<string>>(new Set());
@@ -180,8 +182,37 @@ export default function AnalyzeResume() {
       setHasModifications(true);
       setIsEditMode(false);
       
+      // Save the edited resume to the system
+      console.log('💾 Saving changes to system...');
+      try {
+        const saveResponse = await fetch('/api/save-resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            resumeId: id,
+            editedHtml: editedHtml,
+          }),
+        });
+        const saveData = await saveResponse.json();
+        if (saveResponse.ok && saveData.success) {
+          setResume(prev => prev ? {
+            ...prev,
+            resume_file_url: saveData.resumeFileUrl,
+            resume_file_name: saveData.resumeFileName,
+          } : null);
+          setResumeUrl(saveData.resumeFileUrl);
+          setSavedToSystem(true);
+          console.log('✅ Resume saved to system');
+        } else {
+          console.error('Failed to save to system:', saveData.error);
+        }
+      } catch (saveErr) {
+        console.error('Error saving to system:', saveErr);
+      }
+      
       // Re-analyze the resume with the new content
-      console.log('💾 Changes saved, starting re-analysis...');
+      console.log('🔄 Starting re-analysis...');
       await reAnalyzeEditedResume(editedHtml);
       
       console.log('✅ All done!');
@@ -412,6 +443,46 @@ export default function AnalyzeResume() {
       alert(`❌ Failed to match resume.\n\nError: ${errorMessage}\n\nPlease check:\n• Your Google AI API key is configured\n• You have internet connection\n• The resume file is accessible`);
     } finally {
       setIsMatching(false);
+    }
+  };
+
+  const handleSaveToSystem = async () => {
+    if (!resume || !hasModifications || !resumeHtml) return;
+
+    try {
+      setIsSavingToSystem(true);
+
+      const response = await fetch('/api/save-resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          resumeId: id,
+          editedHtml: resumeHtml,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save resume');
+      }
+
+      // Update local state with new file info
+      setResume(prev => prev ? {
+        ...prev,
+        resume_file_url: data.resumeFileUrl,
+        resume_file_name: data.resumeFileName,
+      } : null);
+      setResumeUrl(data.resumeFileUrl);
+      setSavedToSystem(true);
+
+      alert('\u2705 Resume saved! The new version has been stored in your account.');
+    } catch (err) {
+      console.error('Error saving resume to system:', err);
+      alert('Failed to save resume. Please try again.');
+    } finally {
+      setIsSavingToSystem(false);
     }
   };
 
@@ -1009,20 +1080,25 @@ export default function AnalyzeResume() {
                                   <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                   </svg>
-                                  <span className="text-sm font-medium text-green-900">Viewing modified resume</span>
+                                  <span className="text-sm font-medium text-green-900">
+                                    {savedToSystem ? 'Saved to your account' : 'Viewing modified resume'}
+                                  </span>
                                 </div>
-                                <button
-                                  onClick={() => {
-                                    setHasModifications(false);
-                                    if (modifiedResumeUrl) {
-                                      URL.revokeObjectURL(modifiedResumeUrl);
-                                      setModifiedResumeUrl("");
-                                    }
-                                  }}
-                                  className="text-xs text-green-700 hover:text-green-900 font-medium underline"
-                                >
-                                  View Original
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setHasModifications(false);
+                                      setSavedToSystem(false);
+                                      if (modifiedResumeUrl) {
+                                        URL.revokeObjectURL(modifiedResumeUrl);
+                                        setModifiedResumeUrl("");
+                                      }
+                                    }}
+                                    className="text-xs text-green-700 hover:text-green-900 font-medium underline"
+                                  >
+                                    View Original
+                                  </button>
+                                </div>
                               </div>
                               <div className="w-full h-[870px] overflow-y-auto bg-white border-2 border-gray-100 rounded-2xl shadow-inner custom-scrollbar">
                                 <div className="max-w-4xl mx-auto bg-white p-12">
