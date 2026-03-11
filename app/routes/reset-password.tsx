@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "#f3f4f6",
         padding: "20px",
         fontFamily: '"Mona Sans", ui-sans-serif, system-ui, sans-serif',
       }}
@@ -143,14 +143,14 @@ export default function ResetPasswordPage() {
               style={{
                 fontSize: "36px",
                 fontWeight: 700,
-                color: "#fff",
+                color: "#111827",
                 letterSpacing: "-1px",
               }}
             >
               ATSEngine
             </div>
           </Link>
-          <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginTop: "8px" }}>
+          <p style={{ color: "#6b7280", fontSize: "16px", marginTop: "8px" }}>
             Engineering Your Resume for ATS Success
           </p>
         </div>
@@ -168,7 +168,7 @@ export default function ResetPasswordPage() {
             style={{
               fontSize: "24px",
               fontWeight: 700,
-              color: "#1a1a2e",
+              color: "#111827",
               marginBottom: "4px",
             }}
           >
@@ -282,7 +282,7 @@ export default function ResetPasswordPage() {
                 fontSize: "16px",
                 fontWeight: 600,
                 color: "#fff",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "#111827",
                 border: "none",
                 borderRadius: "10px",
                 cursor: isLoading || success ? "not-allowed" : "pointer",
@@ -297,7 +297,7 @@ export default function ResetPasswordPage() {
 
           <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#6b7280" }}>
             Remember your password?{" "}
-            <Link to="/sign-in" style={{ color: "#667eea", fontWeight: 600, textDecoration: "none" }}>
+            <Link to="/sign-in" style={{ color: "#111827", fontWeight: 600, textDecoration: "none" }}>
               Sign in
             </Link>
           </div>
@@ -305,7 +305,7 @@ export default function ResetPasswordPage() {
 
         {/* Back link */}
         <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <Link to="/" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: "14px" }}>
+          <Link to="/" style={{ color: "#6b7280", textDecoration: "none", fontSize: "14px" }}>
             ← Back to Home
           </Link>
         </div>

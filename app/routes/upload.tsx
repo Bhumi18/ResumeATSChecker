@@ -97,7 +97,7 @@ export default function Upload() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-[url('/images/bg-main.svg')] bg-cover">
+      <main className="min-h-screen bg-gray-50">
         <Navbar />
         <section className="main-section py-8">
           <div className="page-heading py-10">
@@ -106,16 +106,16 @@ export default function Upload() {
           </div>
 
           <div className="max-w-2xl mx-auto px-4 pb-10">
-            <div className="bg-white rounded-3xl shadow-2xl p-8">
+            <div className="bg-white rounded-2xl border border-gray-200 p-8">
               {/* Optional Job Details */}
               <div className="mb-6 space-y-4">
-                <h3 className="font-semibold text-gray-800 text-lg">Job Details (Optional)</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold text-ink-700 text-lg">Job Details (Optional)</h3>
+                <p className="text-sm text-ink-500">
                   Provide job details for more targeted analysis
                 </p>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-ink-500 mb-1">
                     Company Name
                   </label>
                   <input
@@ -123,13 +123,13 @@ export default function Upload() {
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="e.g., Google"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-ink-500 mb-1">
                     Job Title
                   </label>
                   <input
@@ -137,13 +137,13 @@ export default function Upload() {
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
                     placeholder="e.g., Frontend Developer"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-ink-500 mb-1">
                     Job Description
                   </label>
                   <textarea
@@ -151,14 +151,14 @@ export default function Upload() {
                     onChange={(e) => setJobDescription(e.target.value)}
                     placeholder="Paste the job description here for better keyword matching..."
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none resize-none"
                     disabled={loading}
                   />
                 </div>
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="font-semibold text-gray-800 text-lg mb-4">Upload Resume</h3>
+                <h3 className="font-semibold text-ink-700 text-lg mb-4">Upload Resume</h3>
                 <FileUploader onFileSelect={handleFileSelect} />
               </div>
 
@@ -195,7 +195,7 @@ export default function Upload() {
                   <button
                     onClick={handleAnalyze}
                     disabled={loading}
-                    className="px-10 py-3 primary-gradient text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-10 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
@@ -213,7 +213,7 @@ export default function Upload() {
               )}
             </div>
 
-            <div className="mt-6 text-center text-sm text-gray-600 space-y-0.5">
+            <div className="mt-6 text-center text-sm text-ink-500 space-y-0.5">
               <p>✓ Maximum file size: 20MB</p>
               <p>✓ Supported formats: .doc, .docx (Word documents only)</p>
               <p>✓ PDF files are not supported</p>

@@ -88,16 +88,16 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
-      <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen">
+      <main className="bg-gray-50 min-h-screen">
         <Navbar />
         <section className="main-section">
           {/* Hero Section */}
           <div className="py-12 px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                Welcome back, {user?.firstName || 'there'}! 👋
+              <h1 className="text-4xl md:text-5xl font-bold text-ink-900 mb-4">
+                Welcome back, {user?.firstName || 'there'}
               </h1>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-ink-500 mb-8">
                 Track your job applications, analyze resume performance, and land your dream role
               </p>
             </div>
@@ -105,21 +105,21 @@ export default function Home() {
             {/* Stats Cards */}
             {!loading && resumes.length > 0 && (
               <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{stats.total}</div>
-                  <div className="text-sm text-gray-600">Total Applications</div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.total}</div>
+                  <div className="text-sm text-ink-500">Total Applications</div>
                 </div>
-                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{stats.avgScore}</div>
-                  <div className="text-sm text-gray-600">Avg. ATS Score</div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.avgScore}</div>
+                  <div className="text-sm text-ink-500">Avg. ATS Score</div>
                 </div>
-                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">{stats.highScoring}</div>
-                  <div className="text-sm text-gray-600">High Performers (80+)</div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.highScoring}</div>
+                  <div className="text-sm text-ink-500">High Performers (80+)</div>
                 </div>
-                <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-                  <div className="text-3xl font-bold text-orange-600 mb-2">{stats.completed}</div>
-                  <div className="text-sm text-gray-600">Completed Analysis</div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.completed}</div>
+                  <div className="text-sm text-ink-500">Completed Analysis</div>
                 </div>
               </div>
             )}
@@ -127,11 +127,11 @@ export default function Home() {
             {/* Search and Filter Bar */}
             {!loading && resumes.length > 0 && (
               <div className="max-w-6xl mx-auto mb-8">
-                <div className="bg-white rounded-xl p-4 shadow-md flex flex-col md:flex-row gap-4">
+                <div className="bg-white rounded-xl p-4 border border-gray-200 flex flex-col md:flex-row gap-4">
                   {/* Search Input */}
                   <div className="flex-1 relative">
                     <svg
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ink-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -148,7 +148,7 @@ export default function Home() {
                       placeholder="Search by company or role..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none"
                     />
                   </div>
 
@@ -160,8 +160,8 @@ export default function Home() {
                         onClick={() => setFilterStatus(status)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all capitalize ${
                           filterStatus === status
-                            ? 'bg-blue-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-100 text-ink-500 hover:bg-gray-200'
                         }`}
                       >
                         {status}
@@ -172,7 +172,7 @@ export default function Home() {
                   {/* Upload Button */}
                   <a
                     href="/upload"
-                    className="px-6 py-2 primary-gradient text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
+                    className="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
                     <svg
                       className="w-5 h-5"
@@ -220,11 +220,11 @@ export default function Home() {
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="flex flex-col items-center gap-4">
-                <svg className="animate-spin h-12 w-12 text-blue-600" viewBox="0 0 24 24">
+                <svg className="animate-spin h-8 w-8 text-ink-400" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <p className="text-gray-600">Loading your resumes...</p>
+                <p className="text-ink-500">Loading your resumes...</p>
               </div>
             </div>
           ) : resumes.length > 0 ? (
@@ -232,9 +232,9 @@ export default function Home() {
               {/* Results Header */}
               <div className="max-w-6xl mx-auto px-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-ink-900">
                     Your Applications
-                    <span className="ml-3 text-lg font-normal text-gray-500">
+                    <span className="ml-3 text-lg font-normal text-ink-500">
                       ({filteredResumes.length} {filteredResumes.length === 1 ? 'result' : 'results'})
                     </span>
                   </h2>
@@ -299,10 +299,10 @@ export default function Home() {
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
                     </svg>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-ink-700 mb-2">
                       No matches found
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-ink-500 mb-4">
                       Try adjusting your search or filters
                     </p>
                     <button
@@ -310,7 +310,7 @@ export default function Home() {
                         setSearchTerm("");
                         setFilterStatus("all");
                       }}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-ink-700 hover:text-ink-900 font-medium"
                     >
                       Clear all filters
                     </button>
@@ -322,9 +322,9 @@ export default function Home() {
             <div className="max-w-6xl mx-auto px-4">
               <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
                 <div className="mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg
-                      className="w-10 h-10 text-white"
+                      className="w-10 h-10 text-ink-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -338,10 +338,10 @@ export default function Home() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-3">
+                <h3 className="text-3xl font-bold text-ink-900 mb-3">
                   Start Your Journey to Success
                 </h3>
-                <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                <p className="text-lg text-ink-500 mb-8 max-w-2xl mx-auto">
                   Upload your first resume and get instant AI-powered analysis. 
                   Discover how your resume performs against ATS systems and get 
                   actionable feedback to land more interviews.
@@ -349,45 +349,45 @@ export default function Home() {
                 
                 <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto text-left">
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Upload Resume</h4>
-                      <p className="text-sm text-gray-600">Simply upload your resume</p>
+                      <h4 className="font-semibold text-ink-700 mb-1">Upload Resume</h4>
+                      <p className="text-sm text-ink-500">Simply upload your resume</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">AI Analysis</h4>
-                      <p className="text-sm text-gray-600">Get instant AI-powered insights</p>
+                      <h4 className="font-semibold text-ink-700 mb-1">AI Analysis</h4>
+                      <p className="text-sm text-ink-500">Get instant AI-powered insights</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Improve & Apply</h4>
-                      <p className="text-sm text-gray-600">Optimize and land interviews</p>
+                      <h4 className="font-semibold text-ink-700 mb-1">Improve & Apply</h4>
+                      <p className="text-sm text-ink-500">Optimize and land interviews</p>
                     </div>
                   </div>
                 </div>
 
                 <a
                   href="/upload"
-                  className="inline-block px-8 py-4 primary-gradient text-white rounded-xl font-bold text-lg hover:shadow-2xl transition-all transform hover:-translate-y-1"
+                  className="inline-block px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors"
                 >
                   Upload Your First Resume
                 </a>

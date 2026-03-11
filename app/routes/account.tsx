@@ -193,16 +193,16 @@ export default function AccountPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[url('/images/bg-main.svg')] bg-cover py-10 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 py-10 overflow-x-hidden">
       <div className="flex flex-col items-center justify-center px-4">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gradient mb-2">Account Settings</h1>
-          <p className="text-dark-200">Manage your profile and account preferences</p>
+          <h1 className="text-4xl font-bold text-ink-900 mb-2">Account Settings</h1>
+          <p className="text-ink-500">Manage your profile and account preferences</p>
         </div>
 
         {/* Main Container */}
-        <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-4xl bg-white rounded-2xl border border-gray-200 overflow-hidden">
           {/* Tabs */}
           <div className="flex border-b border-gray-200">
             {tabs.map((tab) => (
@@ -215,8 +215,8 @@ export default function AccountPage() {
                 }}
                 className={`flex-1 px-6 py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
                   activeTab === tab.id
-                    ? "text-[#606beb] border-b-2 border-[#606beb] bg-gradient-to-b from-[#606beb]/5 to-transparent"
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                    ? "text-ink-900 border-b-2 border-ink-900"
+                    : "text-ink-500 hover:text-ink-700 hover:bg-gray-50"
                 }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,7 +252,7 @@ export default function AccountPage() {
               <div className="space-y-8">
                 {/* Profile Picture Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Profile picture</h3>
+                  <h3 className="text-lg font-semibold text-ink-700 mb-4">Profile picture</h3>
                   <div className="flex items-center gap-6">
                     {user?.imageUrl ? (
                       <img
@@ -261,7 +261,7 @@ export default function AccountPage() {
                         className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
                       />
                     ) : (
-                      <div className="w-20 h-20 rounded-full primary-gradient flex items-center justify-center text-white text-2xl font-bold border-2 border-gray-200">
+                      <div className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center text-white text-2xl font-bold border-2 border-gray-200">
                         {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
                       </div>
                     )}
@@ -276,7 +276,7 @@ export default function AccountPage() {
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={loading}
-                        className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all disabled:opacity-50"
+                        className="px-4 py-2 text-sm bg-gray-100 text-ink-700 rounded-lg font-medium hover:bg-gray-200 transition-all disabled:opacity-50"
                       >
                         Upload
                       </button>
@@ -298,7 +298,7 @@ export default function AccountPage() {
                 {/* Name Section */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Name</h3>
+                    <h3 className="text-lg font-semibold text-ink-700">Name</h3>
                     {!isEditingName && (
                       <button
                         onClick={() => setIsEditingName(true)}
@@ -312,7 +312,7 @@ export default function AccountPage() {
                     <form onSubmit={handleUpdateName} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          <label className="block text-sm font-medium text-ink-500 mb-1.5">
                             First name
                           </label>
                           <input
@@ -324,7 +324,7 @@ export default function AccountPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          <label className="block text-sm font-medium text-ink-500 mb-1.5">
                             Last name
                           </label>
                           <input
@@ -340,7 +340,7 @@ export default function AccountPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                          className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                         >
                           Save
                         </button>
@@ -351,14 +351,14 @@ export default function AccountPage() {
                             setFirstName(user?.firstName || "");
                             setLastName(user?.lastName || "");
                           }}
-                          className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                          className="px-4 py-2 text-sm bg-gray-100 text-ink-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
                         >
                           Cancel
                         </button>
                       </div>
                     </form>
                   ) : (
-                    <p className="text-gray-700">{user?.fullName || "—"}</p>
+                    <p className="text-ink-700">{user?.fullName || "—"}</p>
                   )}
                 </div>
 
@@ -367,7 +367,7 @@ export default function AccountPage() {
                 {/* Username Section */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Username</h3>
+                    <h3 className="text-lg font-semibold text-ink-700">Username</h3>
                     {!isEditingUsername && (
                       <button
                         onClick={() => setIsEditingUsername(true)}
@@ -393,7 +393,7 @@ export default function AccountPage() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                          className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                         >
                           Save
                         </button>
@@ -403,14 +403,14 @@ export default function AccountPage() {
                             setIsEditingUsername(false);
                             setUsername(user?.username || "");
                           }}
-                          className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                          className="px-4 py-2 text-sm bg-gray-100 text-ink-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
                         >
                           Cancel
                         </button>
                       </div>
                     </form>
                   ) : (
-                    <p className="text-gray-700">{user?.username || "—"}</p>
+                    <p className="text-ink-700">{user?.username || "—"}</p>
                   )}
                 </div>
 
@@ -418,13 +418,13 @@ export default function AccountPage() {
 
                 {/* Email Address Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Email address</h3>
+                  <h3 className="text-lg font-semibold text-ink-700 mb-4">Email address</h3>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800">{user?.primaryEmailAddress?.emailAddress}</p>
+                      <p className="text-sm font-medium text-ink-700">{user?.primaryEmailAddress?.emailAddress}</p>
                       {user?.primaryEmailAddress?.verification?.status === "verified" && (
                         <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium mt-1">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -444,14 +444,14 @@ export default function AccountPage() {
               <div className="space-y-8">
                 {/* Password Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Password</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <h3 className="text-lg font-semibold text-ink-700 mb-2">Password</h3>
+                  <p className="text-sm text-ink-500 mb-4">
                     Change your password to keep your account secure.
                   </p>
                   <button
                     type="button"
                     onClick={() => setShowPasswordModal(true)}
-                    className="px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                        className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
                   >
                     Update password
                   </button>
@@ -461,8 +461,8 @@ export default function AccountPage() {
 
                 {/* Delete Account Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Delete account</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <h3 className="text-lg font-semibold text-ink-700 mb-2">Delete account</h3>
+                  <p className="text-sm text-ink-500 mb-4">
                     Permanently delete your account and all associated data.
                   </p>
                   <button
@@ -486,7 +486,7 @@ export default function AccountPage() {
             {/* Connected Accounts Tab */}
             {activeTab === "accounts" && (
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-6">Connected Accounts</h3>
+                <h3 className="text-xl font-bold text-ink-700 mb-6">Connected Accounts</h3>
                 
                 {/* Google Connection */}
                 {(() => {
@@ -505,8 +505,8 @@ export default function AccountPage() {
                             </svg>
                           </div>
                           <div>
-                            <h4 className="text-base font-semibold text-gray-800">Google</h4>
-                            <p className="text-sm text-gray-500">Connected · {user?.email}</p>
+                            <h4 className="text-base font-semibold text-ink-700">Google</h4>
+                            <p className="text-sm text-ink-500">Connected · {user?.email}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -540,13 +540,13 @@ export default function AccountPage() {
                           </svg>
                         </div>
                         <div>
-                          <h4 className="text-base font-semibold text-gray-800">Google</h4>
-                          <p className="text-sm text-gray-500">Not connected</p>
+                          <h4 className="text-base font-semibold text-ink-700">Google</h4>
+                          <p className="text-sm text-ink-500">Not connected</p>
                         </div>
                       </div>
                       <a
                         href="/api/auth/google"
-                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all"
+                        className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
                       >
                         Connect
                       </a>
@@ -561,9 +561,9 @@ export default function AccountPage() {
         {/* Password Modal */}
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowPasswordModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl border border-gray-200 max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800">Update Password</h2>
+                <h2 className="text-xl font-bold text-ink-700">Update Password</h2>
                 <button
                   type="button"
                   onClick={() => {
@@ -573,7 +573,7 @@ export default function AccountPage() {
                     setConfirmPassword("");
                     setError("");
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-ink-400 hover:text-ink-500 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -592,42 +592,42 @@ export default function AccountPage() {
 
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label className="block text-sm font-medium text-ink-500 mb-1.5">
                     Current password
                   </label>
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label className="block text-sm font-medium text-ink-500 mb-1.5">
                     New password
                   </label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
                     required
                     minLength={8}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                  <p className="text-xs text-ink-400 mt-1">Must be at least 8 characters</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label className="block text-sm font-medium text-ink-500 mb-1.5">
                     Confirm new password
                   </label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
                     required
                   />
                 </div>
@@ -636,7 +636,7 @@ export default function AccountPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 px-4 py-2 text-sm primary-gradient text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                    className="flex-1 px-4 py-2 text-sm bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                   >
                     {loading ? "Updating..." : "Update password"}
                   </button>
@@ -650,7 +650,7 @@ export default function AccountPage() {
                       setError("");
                     }}
                     disabled={loading}
-                    className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all disabled:opacity-50"
+                    className="px-4 py-2 text-sm bg-gray-100 text-ink-700 rounded-lg font-medium hover:bg-gray-200 transition-all disabled:opacity-50"
                   >
                     Cancel
                   </button>
