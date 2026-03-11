@@ -23,6 +23,7 @@ export default [
   route("api/auth/reset-password", "routes/api.auth.reset-password.tsx"),
   route("api/auth/google", "routes/api.auth.google.tsx"),
   route("api/auth/google/callback", "routes/api.auth.google.callback.tsx"),
+  route("api/auth/google/disconnect", "routes/api.auth.google.disconnect.tsx"),
   route("api/migrate-auth", "routes/api.migrate-auth.tsx"),
   route("api/migrate-password-reset", "routes/api.migrate-password-reset.tsx"),
   route("api/migrate-oauth", "routes/api.migrate-oauth.tsx"),

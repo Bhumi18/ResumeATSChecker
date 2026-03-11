@@ -6,6 +6,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
+export interface OAuthProvider {
+  provider: string;
+  provider_account_id: string;
+  created_at: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -15,6 +21,7 @@ export interface AuthUser {
   profileImageUrl: string | null;
   primaryEmailAddress?: { emailAddress: string };
   imageUrl?: string;
+  oauthProviders?: OAuthProvider[];
 }
 
 interface AuthContextType {
@@ -54,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               profileImageUrl: data.user.profile_image_url,
               primaryEmailAddress: { emailAddress: data.user.email },
               imageUrl: data.user.profile_image_url,
+              oauthProviders: data.user.oauth_providers || [],
             };
             setUser(transformedUser);
           }

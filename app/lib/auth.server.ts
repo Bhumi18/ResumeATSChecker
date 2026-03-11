@@ -3,7 +3,7 @@
  * Handles user authentication, session management, and password hashing
  */
 
-import { sql, queryOne, execute } from './neon.server';
+import { sql, queryOne, execute, query } from './neon.server';
 import type { Database } from '../../types/database';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -569,6 +569,23 @@ export async function getOAuthAccount(
   } catch (error) {
     console.error('Error getting OAuth account:', error);
     return null;
+  }
+}
+
+/**
+ * Get all OAuth accounts for a user
+ */
+export async function getUserOAuthProviders(
+  userId: string
+): Promise<{ provider: string; provider_account_id: string; created_at: string }[]> {
+  try {
+    return await query<{ provider: string; provider_account_id: string; created_at: string }>(
+      `SELECT provider, provider_account_id, created_at FROM oauth_accounts WHERE user_id = $1`,
+      [userId]
+    );
+  } catch (error) {
+    console.error('Error getting user OAuth providers:', error);
+    return [];
   }
 }
 

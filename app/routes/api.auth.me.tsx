@@ -1,7 +1,7 @@
 /**
  * Get Current User API Route
  */
-import { getUserBySession } from '../lib/auth.server';
+import { getUserBySession, getUserOAuthProviders } from '../lib/auth.server';
 
 function getSessionToken(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
@@ -27,6 +27,8 @@ export async function loader({ request }: { request: Request }) {
       return Response.json({ user: null });
     }
 
+    const oauthProviders = await getUserOAuthProviders(user.id);
+
     return Response.json({ 
       user: {
         id: user.id,
@@ -34,7 +36,8 @@ export async function loader({ request }: { request: Request }) {
         first_name: user.first_name,
         last_name: user.last_name,
         username: user.username,
-        profile_image_url: user.profile_image_url
+        profile_image_url: user.profile_image_url,
+        oauth_providers: oauthProviders
       }
     });
   } catch (error) {
