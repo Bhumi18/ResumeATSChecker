@@ -5,7 +5,6 @@ import type { Route } from "./+types/analyze.$id";
 import Navbar from "../components/Navbar";
 import ScoreCircle from "../components/ScoreCircle";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { generateOptimizedResume, reAnalyzeResume } from "../lib/ai-analyzer";
 import type { Database } from "../../types/database";
 
 type DatabaseResume = Database['public']['Tables']['resumes']['Row'];
@@ -430,89 +429,75 @@ export default function AnalyzeResume() {
 
     try {
       setIsMatching(true);
-      
-      // Extract current resume text
-      const response = await fetch(resumeUrl);
-      const blob = await response.blob();
-      const mammoth = await import('mammoth');
-      const arrayBuffer = await blob.arrayBuffer();
-      const textResult = await mammoth.extractRawText({ arrayBuffer });
-      const currentResumeText = textResult.value;
-      
-      // Generate optimized resume using AI
-      const optimizedText = await generateOptimizedResume(
-        currentResumeText,
-        resume.job_title,
-        resume.job_description
-      );
-      
-      // Convert optimized text to HTML for display
-      const htmlContent = optimizedText
-        .split('\n\n')
-        .map(paragraph => {
-          if (!paragraph.trim()) return '';
-          // Detect headings (all caps, short lines)
-          if (paragraph.length < 60 && paragraph === paragraph.toUpperCase() && /[A-Z]/.test(paragraph)) {
-            return `<h2 style="font-weight: bold; font-size: 14pt; margin-top: 12pt; margin-bottom: 6pt;">${paragraph}</h2>`;
-          }
-          // Detect subheadings
-          if (paragraph.length < 80 && paragraph.includes(':') && !paragraph.includes('\n')) {
-            return `<h3 style="font-weight: bold; font-size: 12pt; margin-top: 10pt; margin-bottom: 4pt;">${paragraph}</h3>`;
-          }
-          return `<p style="margin-bottom: 8pt; line-height: 1.5;">${paragraph}</p>`;
-        })
-        .join('');
-      
-      setResumeHtml(htmlContent);
-      
-      // Generate Word document
-      const fullHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #000000; margin: 1in; }
-            h1 { font-size: 16pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
-            h2 { font-size: 14pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
-            h3 { font-size: 12pt; font-weight: bold; margin-top: 10pt; margin-bottom: 4pt; }
-            p { margin-top: 0; margin-bottom: 8pt; }
-            ul, ol { margin-left: 0.5in; margin-bottom: 8pt; }
-            li { margin-bottom: 4pt; }
-            strong, b { font-weight: bold; }
-            em, i { font-style: italic; }
-          </style>
-        </head>
-        <body>${htmlContent}</body>
-        </html>
-      `;
-      
-      const htmlDocx = await import('html-docx-js-typescript');
-      const docBlob = await htmlDocx.asBlob(fullHtml) as any;
-      
-      let blobToUse: Blob;
-      if (docBlob instanceof Blob) {
-        blobToUse = docBlob;
-      } else {
-        blobToUse = new Blob([Buffer.from(docBlob)] as any, { 
-          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-        });
+      let currentResumeText = '';
+
+      if (isEditMode && editorRef.current) {
+        currentResumeText = editorRef.current.innerText || '';
+      } else if (resumeHtml) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = resumeHtml;
+        currentResumeText = tempDiv.textContent || tempDiv.innerText || '';
       }
-      
-      const url = URL.createObjectURL(blobToUse);
-      
-      if (modifiedResumeUrl) {
-        URL.revokeObjectURL(modifiedResumeUrl);
+
+      if (!currentResumeText.trim()) {
+        const response = await fetch(resumeUrl);
+        const blob = await response.blob();
+        const mammoth = await import('mammoth');
+        const arrayBuffer = await blob.arrayBuffer();
+        const textResult = await mammoth.extractRawText({ arrayBuffer });
+        currentResumeText = textResult.value || '';
       }
-      
-      setModifiedResumeUrl(url);
-      setHasModifications(true);
-      
+
+      if (!currentResumeText.trim()) {
+        throw new Error('Could not extract resume text for matching.');
+      }
+
+      const prevScore = resume.overall_score ?? analysis?.ats_score ?? 0;
+      setPreviousScore(prevScore);
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeId: id,
+          resumeText: currentResumeText,
+          jobDescription: resume.job_description || '',
+          jobTitle: resume.job_title || '',
+          reanalyze: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to update match suggestions');
+      }
+
+      const result = await response.json();
+
+      if (!result.success || !result.analysis) {
+        throw new Error('No analysis returned from matching');
+      }
+
+      setAnalysis(result.analysis);
+      if (result.resume) {
+        setResume(result.resume);
+      }
+
+      setCompletedSuggestions(new Set());
+
+      const newScore = result.resume?.overall_score ?? result.analysis.ats_score ?? 0;
+      if (newScore > prevScore) {
+        setShowScoreImprovement(true);
+        setTimeout(() => setShowScoreImprovement(false), 3000);
+      }
+
       pushBanner(
         {
           kind: 'success',
-          title: 'Resume optimized',
-          message: 'Your resume was rewritten to better match the job description. Review it on the right and download when ready.',
+          title: 'Match suggestions updated',
+          message: 'Recommendations were refreshed for this job. Your current resume content was not changed.',
         },
         { autoDismissMs: 7000 }
       );
@@ -521,7 +506,7 @@ export default function AnalyzeResume() {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       pushBanner({
         kind: 'error',
-        title: 'Resume optimization failed',
+        title: 'Match analysis failed',
         message: errorMessage,
       });
     } finally {
@@ -1337,7 +1322,7 @@ export default function AnalyzeResume() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    {isMatching ? 'Optimizing...' : 'Match to job'}
+                    {isMatching ? 'Matching...' : 'Match to job'}
                   </button>
 
                   <button
@@ -1380,8 +1365,8 @@ export default function AnalyzeResume() {
                             </div>
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold text-ink-900 mb-2">Optimizing your resume</h3>
-                            <p className="text-ink-500">Matching it to the job description…</p>
+                            <h3 className="text-xl font-bold text-ink-900 mb-2">Analyzing job match</h3>
+                            <p className="text-ink-500">Refreshing recommendations for this role…</p>
                             <p className="text-sm text-ink-400 mt-2">This usually takes 10–15 seconds</p>
                           </div>
                         </div>
