@@ -1432,7 +1432,7 @@ export default function AnalyzeResume() {
                           ref={editorRef}
                           contentEditable
                           suppressContentEditableWarning
-                          className="w-full h-[70vh] min-h-[600px] overflow-y-auto p-8 border-2 border-amber-200 rounded-2xl shadow-inner focus:border-amber-400 focus:ring-2 focus:ring-amber-200 focus:outline-none bg-white custom-scrollbar"
+                          className="w-full h-[90vh] min-h-[860px] overflow-y-auto p-8 border-2 border-amber-200 rounded-2xl shadow-inner focus:border-amber-400 focus:ring-2 focus:ring-amber-200 focus:outline-none bg-white custom-scrollbar"
                           style={{
                             fontFamily: 'Calibri, Arial, sans-serif',
                             fontSize: '11pt',
@@ -1475,7 +1475,7 @@ export default function AnalyzeResume() {
                               </button>
                             </div>
 
-                            <div className="w-full h-[70vh] min-h-[600px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
+                            <div className="w-full h-[90vh] min-h-[860px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
                               <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm my-6 p-6 sm:p-12">
                                 <div className="resume-content" dangerouslySetInnerHTML={{ __html: resumeHtml }} />
                               </div>
@@ -1483,13 +1483,13 @@ export default function AnalyzeResume() {
                           </div>
                         ) : isWordDocument ? (
                           resumeHtml ? (
-                            <div className="w-full h-[70vh] min-h-[600px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
+                            <div className="w-full h-[90vh] min-h-[860px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
                               <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm my-6 p-6 sm:p-12">
                                 <div className="resume-content" dangerouslySetInnerHTML={{ __html: resumeHtml }} />
                               </div>
                             </div>
                           ) : (
-                            <div className="w-full h-[70vh] min-h-[600px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
+                            <div className="w-full h-[90vh] min-h-[860px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
                               <div className="text-center space-y-4">
                                 <svg className="mx-auto h-12 w-12 text-ink-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1501,33 +1501,43 @@ export default function AnalyzeResume() {
                         ) : (
                           <iframe
                             src={resumeUrl}
-                            className="w-full h-[70vh] min-h-[600px] bg-white border border-gray-200 rounded-2xl shadow-sm"
+                            className="w-full h-[90vh] min-h-[860px] bg-white border border-gray-200 rounded-2xl shadow-sm"
                             title="Resume Viewer"
                           />
                         )}
                       </>
                     )}
 
-                    <div className="mt-5 p-5 bg-white/70 backdrop-blur border border-gray-200 rounded-xl shadow-sm">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
-                          <img src="/icons/info.svg" alt="" aria-hidden className="w-5 h-5 opacity-70" />
+                    {isEditMode ? (
+                      <div className="mt-10 p-4 bg-white/70 backdrop-blur border border-gray-200 rounded-xl shadow-sm">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
+                            <img src="/icons/info.svg" alt="" aria-hidden className="w-5 h-5 opacity-70" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-ink-700 mb-1">Pro Tip</p>
+                            <p className="text-sm text-ink-500 leading-relaxed">
+                              Make your changes in the editor above and click "Save & Re-analyze" when done.
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-ink-700 mb-1">Pro Tip</p>
-                          <p className="text-sm text-ink-500 leading-relaxed">
-                            {isEditMode
-                              ? 'Make your changes in the editor above and click "Save & Re-analyze" when done.'
-                              : hasModifications
-                                ? 'You\'re viewing an edited version. Download to get the latest file, or click “Edit” to keep refining.'
-                                : 'Click “Edit” to adjust your resume, or review the recommendations on the left.'}
+                      </div>
+                    ) : (
+                      <div className="mt-9 px-4 py-2.5 bg-white/70 backdrop-blur border border-gray-200 rounded-lg shadow-sm">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <img src="/icons/info.svg" alt="" aria-hidden className="w-4 h-4 opacity-70 flex-shrink-0" />
+                          <p className="text-sm text-ink-600 min-w-0 truncate">
+                            <span className="font-semibold text-ink-700">Pro Tip:</span>{' '}
+                            {hasModifications
+                              ? 'You\'re viewing an edited version. Download to get the latest file, or click "Edit" to keep refining.'
+                              : 'Click "Edit" to adjust your resume, or review the recommendations on the left.'}
                           </p>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="w-full h-[70vh] min-h-[600px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
+                  <div className="w-full h-[90vh] min-h-[860px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                       <svg className="mx-auto h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
