@@ -832,6 +832,11 @@ export default function AnalyzeResume() {
   return (
     <ProtectedRoute>
       <main className="min-h-screen bg-gray-50 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-br from-green-100 to-blue-100 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full filter blur-3xl opacity-15 animate-pulse" style={{ animationDuration: '10s' }} />
+
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[url('/images/bg-main.svg')] bg-cover bg-top opacity-40"
@@ -843,40 +848,40 @@ export default function AnalyzeResume() {
 
           <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-8 lg:py-10 space-y-6">
           {/* Page header */}
-          <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-lg transition-shadow">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
               <div className="min-w-0">
                 <button
                   type="button"
                   onClick={() => navigate('/')}
-                  className="back-button bg-white hover:bg-gray-50 text-ink-700"
+                  className="back-button bg-white hover:bg-gray-50 text-ink-700 transition-all duration-300 hover:translate-x-[-4px] hover:shadow-md group"
                 >
-                  <img src="/icons/back.svg" alt="" aria-hidden className="w-4 h-4" />
+                  <img src="/icons/back.svg" alt="" aria-hidden className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
                   <span className="text-sm font-medium">Back</span>
                 </button>
 
                 <div className="mt-4 min-w-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <h1 className="text-2xl font-bold text-ink-900">Resume analysis</h1>
-                      <p className="text-sm text-ink-500 mt-1">
+                      <h1 className="text-2xl font-bold text-ink-900 hover:scale-[1.01] transition-transform duration-300 cursor-default">Resume analysis</h1>
+                      <p className="text-sm text-ink-500 mt-1 hover:text-ink-700 transition-colors duration-300">
                         Turn recommendations into a stronger, job-matched resume.
                       </p>
                     </div>
 
-                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-ink-700">
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-ink-700 hover:bg-gray-100 hover:border-gray-300 transition-all duration-300 cursor-default">
                       <img src="/icons/pin.svg" alt="" aria-hidden className="w-4 h-4 opacity-80" />
-                      <span>Review</span>
+                      <span className="hover:text-ink-900 transition-colors">Review</span>
                       <span className="text-ink-400">→</span>
-                      <span>Edit</span>
+                      <span className="hover:text-ink-900 transition-colors">Edit</span>
                       <span className="text-ink-400">→</span>
-                      <span>Re-analyze</span>
+                      <span className="hover:text-ink-900 transition-colors">Re-analyze</span>
                     </div>
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {resume.job_title ? (
-                      <span className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-ink-700">
+                      <span className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-ink-700 hover:bg-gray-200 hover:scale-105 transition-all duration-200 cursor-default">
                         {resume.job_title}
                       </span>
                     ) : (
@@ -885,11 +890,11 @@ export default function AnalyzeResume() {
                       </span>
                     )}
                     {resume.company_name && (
-                      <span className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-ink-700">
+                      <span className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-ink-700 hover:bg-gray-200 hover:scale-105 transition-all duration-200 cursor-default">
                         {resume.company_name}
                       </span>
                     )}
-                    <span className="px-3 py-1 rounded-full bg-white/70 border border-gray-200 text-xs font-semibold text-ink-500 truncate max-w-full">
+                    <span className="px-3 py-1 rounded-full bg-white/70 border border-gray-200 text-xs font-semibold text-ink-500 truncate max-w-full hover:bg-gray-50 transition-colors">
                       {resume.resume_file_name}
                     </span>
                   </div>
@@ -899,18 +904,18 @@ export default function AnalyzeResume() {
               <div
                 className={`rounded-2xl border px-5 py-4 ${getScoreBgColor(overallScore)} ${
                   showScoreImprovement ? 'ring-2 ring-green-200' : ''
-                } shadow-sm`}
+                } shadow-sm hover:shadow-lg transition-all duration-500 cursor-default group`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="hidden sm:flex p-2 bg-white/70 border border-gray-200 rounded-2xl">
+                  <div className="hidden sm:flex p-2 bg-white/70 border border-gray-200 rounded-2xl transition-transform duration-300 group-hover:scale-105">
                     <ScoreCircle score={overallScore} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs uppercase tracking-wider text-ink-500">Overall score</p>
                     <div className="flex flex-wrap items-end gap-2 mt-2">
-                      <span className={`text-4xl font-bold leading-none ${getScoreColor(overallScore)}`}>{overallScore}</span>
+                      <span className={`text-4xl font-bold leading-none ${getScoreColor(overallScore)} transition-transform duration-300 group-hover:scale-110`}>{overallScore}</span>
                       <span className="text-sm text-ink-500 mb-1">/100</span>
-                      <span className="mb-1 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/70 border border-gray-200 text-[11px] font-semibold text-ink-700">
+                      <span className="mb-1 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/70 border border-gray-200 text-[11px] font-semibold text-ink-700 hover:scale-105 transition-transform">
                         <img src={scoreMeta.iconSrc} alt="" aria-hidden className="w-4 h-4" />
                         {scoreMeta.label}
                       </span>
@@ -953,18 +958,23 @@ export default function AnalyzeResume() {
                 <p className="text-xs text-ink-500">0–100</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {tabs.map((tab) => {
+                {tabs.map((tab, index) => {
                   const percent = Math.max(0, Math.min(100, tab.score));
 
                   return (
-                    <div key={tab.id} className="rounded-xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm">
+                    <div
+                      key={tab.id}
+                      className="rounded-xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm cursor-pointer group hover:shadow-lg hover:border-gray-300 transition-all duration-300 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-2"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-ink-500">{tab.label}</p>
-                        <p className={`text-sm font-bold ${getScoreColor(tab.score)}`}>{tab.score}</p>
+                        <p className="text-xs text-ink-500 group-hover:text-ink-700 transition-colors">{tab.label}</p>
+                        <p className={`text-sm font-bold ${getScoreColor(tab.score)} transition-transform duration-300 group-hover:scale-125`}>{tab.score}</p>
                       </div>
                       <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className={`h-full ${
+                          className={`h-full transition-all duration-700 ease-out ${
                             tab.score >= 80 ? 'bg-green-600' : tab.score >= 60 ? 'bg-yellow-500' : 'bg-red-600'
                           }`}
                           style={{ width: `${percent}%` }}
@@ -1016,20 +1026,20 @@ export default function AnalyzeResume() {
           {/* Main content */}
           <div className="grid grid-cols-1 xl:grid-cols-[520px_1fr] gap-6 lg:gap-8">
             {/* Left Side - Recommendations */}
-            <aside className="xl:sticky xl:top-24 self-start">
-              <div className="bg-white/80 backdrop-blur rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <aside className="xl:sticky xl:top-24 self-start animate-in fade-in slide-in-from-left-4 duration-700">
+              <div className="bg-white/80 backdrop-blur rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-500">
                 <div className="px-6 py-5 border-b border-gray-200 flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center transition-transform duration-300 hover:scale-110 hover:rotate-6">
                       <img src="/icons/pin.svg" alt="" aria-hidden className="w-5 h-5 opacity-80" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-ink-900">Recommendations</h2>
+                      <h2 className="text-lg font-semibold text-ink-900 hover:text-ink-700 transition-colors">Recommendations</h2>
                       <p className="text-sm text-ink-500 mt-1">Pick a category and apply the suggestions.</p>
                     </div>
                   </div>
 
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-ink-700">
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-ink-700 hover:bg-gray-100 hover:scale-105 transition-all duration-200 cursor-default">
                     <span>{tipsForActiveTab.length}</span>
                     <span className="text-ink-400">tips</span>
                   </div>
@@ -1046,14 +1056,18 @@ export default function AnalyzeResume() {
                           type="button"
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`px-4 py-2 rounded-xl border text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition-colors ${
+                          className={`px-4 py-2 rounded-xl border text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition-all duration-300 relative overflow-hidden group ${
                             isActive
-                              ? 'bg-gray-900 border-gray-900 text-white'
-                              : 'bg-white border-gray-200 text-ink-700 hover:bg-gray-50'
+                              ? 'bg-gray-900 border-gray-900 text-white shadow-lg'
+                              : 'bg-white border-gray-200 text-ink-700 hover:bg-gray-100 hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-md'
                           }`}
                         >
-                          <span>{tab.label}</span>
-                          <span className={`text-xs font-bold ${isActive ? 'text-white' : getScoreColor(tab.score)}`}>{tab.score}</span>
+                          {/* Shine effect on hover */}
+                          {!isActive && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                          )}
+                          <span className="relative z-10">{tab.label}</span>
+                          <span className={`text-xs font-bold relative z-10 transition-transform duration-200 ${isActive ? 'text-white' : getScoreColor(tab.score)} group-hover:scale-110`}>{tab.score}</span>
                         </button>
                       );
                     })}
@@ -1067,14 +1081,15 @@ export default function AnalyzeResume() {
                       {tipsForActiveTab.map((tip: any, index: number) => (
                         <div
                           key={index}
-                          className={`p-5 rounded-xl border bg-white/70 backdrop-blur transition-colors ${
-                            tip.type === 'good' ? 'border-gray-200 border-l-4 border-l-green-500' : 'border-gray-200 border-l-4 border-l-amber-500'
+                          className={`p-5 rounded-xl border bg-white/70 backdrop-blur transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default group animate-in fade-in slide-in-from-right-4 ${
+                            tip.type === 'good' ? 'border-gray-200 border-l-4 border-l-green-500 hover:border-l-green-600' : 'border-gray-200 border-l-4 border-l-amber-500 hover:border-l-amber-600'
                           }`}
+                          style={{ animationDelay: `${index * 0.1}s` }}
                         >
                           <div className="flex items-start gap-4">
                             <div
-                              className={`flex-shrink-0 mt-0.5 p-2 rounded-lg ${
-                                tip.type === 'good' ? 'bg-green-100' : 'bg-yellow-100'
+                              className={`flex-shrink-0 mt-0.5 p-2 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
+                                tip.type === 'good' ? 'bg-green-100 group-hover:bg-green-200' : 'bg-yellow-100 group-hover:bg-yellow-200'
                               }`}
                             >
                               {tip.type === 'good' ? (
@@ -1097,9 +1112,9 @@ export default function AnalyzeResume() {
                             </div>
 
                             <div className="flex-1">
-                              <p className="font-semibold text-ink-900 leading-relaxed">{typeof tip === 'string' ? tip : tip.tip}</p>
+                              <p className="font-semibold text-ink-900 leading-relaxed group-hover:text-ink-700 transition-colors">{typeof tip === 'string' ? tip : tip.tip}</p>
                               {tip.explanation && (
-                                <p className="text-sm text-ink-500 mt-2 leading-relaxed">{tip.explanation}</p>
+                                <p className="text-sm text-ink-500 mt-2 leading-relaxed group-hover:text-ink-600 transition-colors">{tip.explanation}</p>
                               )}
                             </div>
                           </div>
@@ -1117,9 +1132,9 @@ export default function AnalyzeResume() {
                   {activeTab === 'ats' && analysis && (
                     <div className="mt-6 space-y-4">
                       {analysis.keywords_found && analysis.keywords_found.length > 0 && (
-                        <div className="p-5 bg-green-50 border border-green-200 rounded-xl">
+                        <div className="p-5 bg-green-50 border border-green-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="p-1.5 bg-green-100 rounded-lg">
+                            <div className="p-1.5 bg-green-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
@@ -1128,18 +1143,22 @@ export default function AnalyzeResume() {
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {analysis.keywords_found.map((keyword: string, idx: number) => (
-                              <span key={idx} className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-semibold shadow-sm hover:bg-green-200 transition-colors">
+                              <span
+                                key={idx}
+                                className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-semibold shadow-sm hover:bg-green-200 hover:scale-110 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default"
+                                style={{ animationDelay: `${idx * 0.05}s` }}
+                              >
                                 {keyword}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
-                      
+
                       {analysis.keywords_missing && analysis.keywords_missing.length > 0 && (
-                        <div className="p-5 bg-red-50 border border-red-200 rounded-xl">
+                        <div className="p-5 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: '0.1s' }}>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="p-1.5 bg-red-100 rounded-lg">
+                            <div className="p-1.5 bg-red-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                               </svg>
@@ -1153,11 +1172,12 @@ export default function AnalyzeResume() {
                               return (
                                 <span
                                   key={idx}
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1.5 ${
-                                    isCompleted 
-                                      ? 'bg-green-100 text-green-800 border-2 border-green-300 line-through' 
-                                      : 'bg-red-100 text-red-800'
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1.5 cursor-default hover:scale-110 hover:-translate-y-1 hover:shadow-md ${
+                                    isCompleted
+                                      ? 'bg-green-100 text-green-800 border-2 border-green-300 line-through'
+                                      : 'bg-red-100 text-red-800 hover:bg-red-200'
                                   }`}
+                                  style={{ animationDelay: `${idx * 0.05}s` }}
                                 >
                                   {isCompleted && (
                                     <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1178,9 +1198,9 @@ export default function AnalyzeResume() {
                   {activeTab === 'structure' && analysis && (
                     <div className="mt-6 space-y-4">
                       {analysis.sections_found && analysis.sections_found.length > 0 && (
-                        <div className="p-5 bg-green-50 border border-green-200 rounded-xl">
+                        <div className="p-5 bg-green-50 border border-green-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="p-1.5 bg-green-100 rounded-lg">
+                            <div className="p-1.5 bg-green-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
@@ -1189,18 +1209,21 @@ export default function AnalyzeResume() {
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {analysis.sections_found.map((section: string, idx: number) => (
-                              <span key={idx} className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-semibold shadow-sm hover:bg-green-200 transition-colors">
+                              <span
+                                key={idx}
+                                className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-semibold shadow-sm hover:bg-green-200 hover:scale-110 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default"
+                              >
                                 {section}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
-                      
+
                       {analysis.sections_missing && analysis.sections_missing.length > 0 && (
-                        <div className="p-5 bg-red-50 border border-red-200 rounded-xl">
+                        <div className="p-5 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: '0.1s' }}>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="p-1.5 bg-red-100 rounded-lg">
+                            <div className="p-1.5 bg-red-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                               </svg>
@@ -1214,10 +1237,10 @@ export default function AnalyzeResume() {
                               return (
                                 <span
                                   key={idx}
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1.5 ${
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1.5 cursor-default hover:scale-110 hover:-translate-y-1 hover:shadow-md ${
                                     isCompleted
                                       ? 'bg-green-100 text-green-800 border-2 border-green-300 line-through'
-                                      : 'bg-red-100 text-red-800'
+                                      : 'bg-red-100 text-red-800 hover:bg-red-200'
                                   }`}
                                 >
                                   {isCompleted && (
@@ -1239,10 +1262,10 @@ export default function AnalyzeResume() {
             </aside>
 
             {/* Right Side - Resume Viewer */}
-            <section className="bg-white/80 backdrop-blur rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <section className="bg-white/80 backdrop-blur rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-500 animate-in fade-in slide-in-from-right-4 duration-700">
               <div className="px-6 py-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <h2 className="text-lg font-semibold text-ink-900">Resume</h2>
+                  <h2 className="text-lg font-semibold text-ink-900 hover:text-ink-700 transition-colors">Resume</h2>
                   <div className="flex items-center gap-2 mt-1 min-w-0">
                     <p className="text-sm text-ink-500 truncate">{resume.resume_file_name}</p>
                     {isEditMode ? (
@@ -1276,14 +1299,14 @@ export default function AnalyzeResume() {
                         extractTextFromWord();
                       }}
                       disabled={isExtracting}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm flex items-center gap-2 border ${
+                      className={`btn-interactive px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 border group ${
                         canEditResume
                           ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
                           : 'bg-gray-100 text-ink-500 border-gray-200'
                       } ${isExtracting ? 'opacity-50' : ''}`}
                       title={!canEditResume ? 'Editing is available for Word documents (.doc/.docx) only' : ''}
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -1297,9 +1320,9 @@ export default function AnalyzeResume() {
                     <button
                       type="button"
                       onClick={() => setIsEditMode(false)}
-                      className="px-4 py-2 bg-gray-100 text-ink-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200 text-sm flex items-center gap-2 border border-gray-200"
+                      className="btn-interactive px-4 py-2 bg-gray-100 text-ink-700 rounded-xl font-medium hover:bg-gray-200 text-sm flex items-center gap-2 border border-gray-200 group"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path
                           strokeLinecap="round"
