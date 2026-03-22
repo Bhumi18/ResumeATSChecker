@@ -88,16 +88,23 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
-      <main className="bg-gray-50 min-h-screen">
+      <main className="bg-gray-50 min-h-screen relative overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 animated-bg opacity-50 pointer-events-none" />
+
+        {/* Floating decorative elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDuration: '6s' }} />
+
         <Navbar />
-        <section className="main-section">
+        <section className="main-section relative z-10">
           {/* Hero Section */}
           <div className="py-12 px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-ink-900 mb-4">
-                Welcome back, {user?.firstName || 'there'}
+            <div className="max-w-4xl mx-auto text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h1 className="text-4xl md:text-5xl font-bold text-ink-900 mb-4 hover:scale-[1.02] transition-transform duration-300 cursor-default">
+                Welcome back, <span className="text-gradient-animated">{user?.firstName || 'there'}</span>
               </h1>
-              <p className="text-lg text-ink-500 mb-8">
+              <p className="text-lg text-ink-500 mb-8 hover:text-ink-700 transition-colors duration-300">
                 Track your job applications, analyze resume performance, and land your dream role
               </p>
             </div>
@@ -105,33 +112,73 @@ export default function Home() {
             {/* Stats Cards */}
             {!loading && resumes.length > 0 && (
               <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.total}</div>
-                  <div className="text-sm text-ink-500">Total Applications</div>
+                <div className="stat-card bg-white rounded-xl p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-500 cursor-default group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-blue-100 rounded-lg stat-icon transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-ink-900 mb-1 stat-number transition-all duration-300 group-hover:scale-110 group-hover:text-blue-600">{stats.total}</div>
+                    <div className="text-sm text-ink-500 group-hover:text-ink-700 transition-colors">Total Applications</div>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.avgScore}</div>
-                  <div className="text-sm text-ink-500">Avg. ATS Score</div>
+                <div className="stat-card bg-white rounded-xl p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-500 cursor-default group relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-green-100 rounded-lg stat-icon transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-ink-900 mb-1 stat-number transition-all duration-300 group-hover:scale-110 group-hover:text-green-600">{stats.avgScore}%</div>
+                    <div className="text-sm text-ink-500 group-hover:text-ink-700 transition-colors">Avg. ATS Score</div>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.highScoring}</div>
-                  <div className="text-sm text-ink-500">High Performers (80+)</div>
+                <div className="stat-card bg-white rounded-xl p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-500 cursor-default group relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-yellow-100 rounded-lg stat-icon transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-ink-900 mb-1 stat-number transition-all duration-300 group-hover:scale-110 group-hover:text-yellow-600">{stats.highScoring}</div>
+                    <div className="text-sm text-ink-500 group-hover:text-ink-700 transition-colors">High Performers (80+)</div>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-3xl font-bold text-ink-900 mb-2">{stats.completed}</div>
-                  <div className="text-sm text-ink-500">Completed Analysis</div>
+                <div className="stat-card bg-white rounded-xl p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-500 cursor-default group relative overflow-hidden" style={{ animationDelay: '0.3s' }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-purple-100 rounded-lg stat-icon transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-ink-900 mb-1 stat-number transition-all duration-300 group-hover:scale-110 group-hover:text-purple-600">{stats.completed}</div>
+                    <div className="text-sm text-ink-500 group-hover:text-ink-700 transition-colors">Completed Analysis</div>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Search and Filter Bar */}
             {!loading && resumes.length > 0 && (
-              <div className="max-w-6xl mx-auto mb-8">
-                <div className="bg-white rounded-xl p-4 border border-gray-200 flex flex-col md:flex-row gap-4">
+              <div className="max-w-6xl mx-auto mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400">
+                <div className="bg-white rounded-xl p-4 border border-gray-200 flex flex-col md:flex-row gap-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                   {/* Search Input */}
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative group">
                     <svg
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ink-400"
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ink-400 transition-colors group-focus-within:text-ink-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -148,7 +195,7 @@ export default function Home() {
                       placeholder="Search by company or role..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-400 outline-none transition-all duration-200 hover:border-gray-300"
                     />
                   </div>
 
@@ -158,10 +205,10 @@ export default function Home() {
                       <button
                         key={status}
                         onClick={() => setFilterStatus(status)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all capitalize ${
+                        className={`filter-btn px-4 py-2 rounded-lg font-medium capitalize ${
                           filterStatus === status
-                            ? 'bg-gray-900 text-white'
-                            : 'bg-gray-100 text-ink-500 hover:bg-gray-200'
+                            ? 'filter-btn-active bg-gray-900 text-white shadow-md'
+                            : 'bg-gray-100 text-ink-500 hover:bg-gray-200 hover:text-ink-700'
                         }`}
                       >
                         {status}
@@ -172,10 +219,10 @@ export default function Home() {
                   {/* Upload Button */}
                   <a
                     href="/upload"
-                    className="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="btn-interactive px-6 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center gap-2 whitespace-nowrap justify-center"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-5 h-5 transition-transform duration-200 group-hover:rotate-90"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -219,12 +266,21 @@ export default function Home() {
 
           {loading ? (
             <div className="flex justify-center items-center py-20">
-              <div className="flex flex-col items-center gap-4">
-                <svg className="animate-spin h-8 w-8 text-ink-400" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <p className="text-ink-500">Loading your resumes...</p>
+              <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
+                <div className="relative">
+                  {/* Outer rotating ring */}
+                  <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-pulse" />
+                  {/* Spinning gradient ring */}
+                  <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-gray-600 border-r-gray-400 rounded-full animate-spin" />
+                  {/* Inner pulsing dot */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-gray-600 rounded-full animate-ping opacity-75" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-ink-700 font-medium">Loading your resumes</p>
+                  <p className="text-ink-400 text-sm mt-1">Just a moment...</p>
+                </div>
               </div>
             </div>
           ) : resumes.length > 0 ? (
@@ -244,9 +300,10 @@ export default function Home() {
               {/* Resumes Grid */}
               {filteredResumes.length > 0 ? (
                 <div className="resumes-section">
-                  {filteredResumes.map(({ resume, analysis }) => (
-                    <ResumeCard 
-                      key={resume.id} 
+                  {filteredResumes.map(({ resume, analysis }, index) => (
+                    <ResumeCard
+                      key={resume.id}
+                      index={index}
                       resume={{
                         id: resume.id,
                         companyName: resume.company_name || undefined,
@@ -319,10 +376,10 @@ export default function Home() {
               )}
             </>
           ) : (
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <div className="max-w-6xl mx-auto px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="bg-white rounded-2xl shadow-xl p-12 text-center hover:shadow-2xl transition-shadow duration-500">
                 <div className="mb-6">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 float-animation">
                     <svg
                       className="w-10 h-10 text-ink-400"
                       fill="none"
@@ -342,15 +399,15 @@ export default function Home() {
                   Start Your Journey to Success
                 </h3>
                 <p className="text-lg text-ink-500 mb-8 max-w-2xl mx-auto">
-                  Upload your first resume and get instant AI-powered analysis. 
-                  Discover how your resume performs against ATS systems and get 
+                  Upload your first resume and get instant AI-powered analysis.
+                  Discover how your resume performs against ATS systems and get
                   actionable feedback to land more interviews.
                 </p>
-                
+
                 <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto text-left">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="flex items-start gap-3 p-4 rounded-xl transition-all duration-300 hover:bg-gray-50 hover:shadow-sm">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                     </div>
@@ -359,10 +416,10 @@ export default function Home() {
                       <p className="text-sm text-ink-500">Simply upload your resume</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                  <div className="flex items-start gap-3 p-4 rounded-xl transition-all duration-300 hover:bg-gray-50 hover:shadow-sm">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                      <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
                     </div>
@@ -371,10 +428,10 @@ export default function Home() {
                       <p className="text-sm text-ink-500">Get instant AI-powered insights</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                  <div className="flex items-start gap-3 p-4 rounded-xl transition-all duration-300 hover:bg-gray-50 hover:shadow-sm">
+                    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
@@ -387,7 +444,7 @@ export default function Home() {
 
                 <a
                   href="/upload"
-                  className="inline-block px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors"
+                  className="btn-interactive inline-block px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 pulse-cta"
                 >
                   Upload Your First Resume
                 </a>

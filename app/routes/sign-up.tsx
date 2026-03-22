@@ -67,6 +67,7 @@ export default function SignUpPage() {
     outline: "none",
     boxSizing: "border-box",
     margin: 0,
+    transition: "all 0.2s ease",
   };
 
   const labelStyle: React.CSSProperties = {
@@ -143,6 +144,15 @@ export default function SignUpPage() {
             borderRadius: "16px",
             padding: "40px 32px",
             boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+            transition: "all 0.3s ease",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.boxShadow = "0 25px 70px rgba(0,0,0,0.2)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.boxShadow = "0 20px 60px rgba(0,0,0,0.15)";
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           <div
@@ -299,6 +309,23 @@ export default function SignUpPage() {
                 opacity: isLoading ? 0.6 : 1,
                 marginTop: "4px",
                 boxSizing: "border-box",
+                transition: "all 0.2s ease",
+                transform: "translateY(0)",
+              }}
+              onMouseOver={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                }
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+              onMouseDown={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }
               }}
             >
               {isLoading ? "Creating account..." : "Create Account"}
@@ -330,16 +357,21 @@ export default function SignUpPage() {
               borderRadius: "10px",
               cursor: "pointer",
               textDecoration: "none",
-              transition: "all 0.2s",
+              transition: "all 0.2s ease",
               boxSizing: "border-box",
+              transform: "translateY(0)",
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = "#f9fafb";
               e.currentTarget.style.borderColor = "#9ca3af";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = "#fff";
               e.currentTarget.style.borderColor = "#d1d5db";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
@@ -353,7 +385,21 @@ export default function SignUpPage() {
 
           <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#6b7280" }}>
             Already have an account?{" "}
-            <Link to="/sign-in" style={{ color: "#111827", fontWeight: 600, textDecoration: "none" }}>
+            <Link
+              to="/sign-in"
+              style={{
+                color: "#111827",
+                fontWeight: 600,
+                textDecoration: "none",
+                transition: "all 0.2s ease",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.color = "#374151";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.color = "#111827";
+              }}
+            >
               Sign in
             </Link>
           </div>
@@ -361,8 +407,25 @@ export default function SignUpPage() {
 
         {/* Back link */}
         <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <Link to="/" style={{ color: "#6b7280", textDecoration: "none", fontSize: "14px" }}>
-            ← Back to Home
+          <Link
+            to="/"
+            style={{
+              color: "#6b7280",
+              textDecoration: "none",
+              fontSize: "14px",
+              transition: "all 0.2s ease",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = "#374151";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = "#6b7280";
+            }}
+          >
+            <span>←</span> Back to Home
           </Link>
         </div>
       </div>
