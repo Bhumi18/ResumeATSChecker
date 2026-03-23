@@ -24,15 +24,9 @@ const Navbar: () => JSX.Element = () => {
           }}
         >
           ATS<span
-            className="transition-all duration-500"
+            className="transition-all duration-300"
             style={{
-              background: isHovered
-                ? 'linear-gradient(90deg, #111827, #374151, #111827)'
-                : '#111827',
-              backgroundSize: '200% auto',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: isHovered ? 'transparent' : 'inherit',
-              animation: isHovered ? 'text-gradient-shift 2s linear infinite' : 'none',
+              color: '#111827',
             }}
           >Engine</span>
         </p>
