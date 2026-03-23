@@ -112,60 +112,127 @@ export default function SignUpPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#f3f4f6",
+        background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%)",
+        backgroundSize: "400% 400%",
+        animation: "gradient-shift 15s ease infinite",
         padding: "20px",
         fontFamily: '"Mona Sans", ui-sans-serif, system-ui, sans-serif',
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "420px" }}>
+      {/* Animated background orbs */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-15%",
+          left: "-10%",
+          width: "450px",
+          height: "450px",
+          background: "radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)",
+          borderRadius: "50%",
+          filter: "blur(50px)",
+          animation: "float 9s ease-in-out infinite",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-20%",
+          right: "-10%",
+          width: "500px",
+          height: "500px",
+          background: "radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%)",
+          borderRadius: "50%",
+          filter: "blur(60px)",
+          animation: "float 11s ease-in-out infinite reverse",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          right: "20%",
+          width: "250px",
+          height: "250px",
+          background: "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)",
+          borderRadius: "50%",
+          filter: "blur(40px)",
+          animation: "float 7s ease-in-out infinite",
+        }}
+      />
+
+      <div style={{ width: "100%", maxWidth: "420px", position: "relative", zIndex: 10 }}>
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <Link to="/" style={{ textDecoration: "none" }}>
+        <div
+          style={{ textAlign: "center", marginBottom: "32px" }}
+          className="animate-in fade-in slide-in-from-bottom-4 duration-700"
+        >
+          <Link to="/" style={{ textDecoration: "none" }} className="group inline-block">
             <div
               style={{
                 fontSize: "36px",
                 fontWeight: 700,
                 color: "#111827",
                 letterSpacing: "-1px",
+                transition: "all 0.3s ease",
               }}
+              className="hover:scale-105 hover:tracking-wider"
             >
               ATSEngine
             </div>
           </Link>
-          <p style={{ color: "#6b7280", fontSize: "16px", marginTop: "8px" }}>
+          <p style={{ color: "#6b7280", fontSize: "16px", marginTop: "8px" }} className="hover:text-gray-700 transition-colors duration-300">
             Engineering Your Resume for ATS Success
           </p>
         </div>
 
         {/* Card */}
         <div
+          className="animate-in fade-in slide-in-from-bottom-6 duration-700 relative overflow-hidden group"
           style={{
-            backgroundColor: "#fff",
-            borderRadius: "16px",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "20px",
             padding: "40px 32px",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-            transition: "all 0.3s ease",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            animationDelay: "0.1s",
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.boxShadow = "0 25px 70px rgba(0,0,0,0.2)";
-            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 30px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8)";
+            e.currentTarget.style.transform = "translateY(-4px)";
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.boxShadow = "0 20px 60px rgba(0,0,0,0.15)";
+            e.currentTarget.style.boxShadow = "0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)";
             e.currentTarget.style.transform = "translateY(0)";
           }}
         >
+          {/* Subtle gradient overlay on card */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, transparent 50%, rgba(34, 197, 94, 0.03) 100%)",
+              pointerEvents: "none",
+              opacity: 0,
+              transition: "opacity 0.5s ease",
+            }}
+            className="group-hover:opacity-100"
+          />
+
           <div
             style={{
               fontSize: "24px",
               fontWeight: 700,
               color: "#111827",
               marginBottom: "4px",
+              position: "relative",
             }}
           >
             Create account
           </div>
-          <p style={{ color: "#6b7280", fontSize: "14px", margin: "0 0 24px 0" }}>
+          <p style={{ color: "#6b7280", fontSize: "14px", margin: "0 0 24px 0", position: "relative" }}>
             Start optimizing your resume today
           </p>
 
@@ -295,6 +362,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={isLoading}
+              className="group relative overflow-hidden"
               style={{
                 display: "block",
                 width: "100%",
@@ -302,33 +370,55 @@ export default function SignUpPage() {
                 fontSize: "16px",
                 fontWeight: 600,
                 color: "#fff",
-                background: "#111827",
+                background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
                 border: "none",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 cursor: isLoading ? "not-allowed" : "pointer",
                 opacity: isLoading ? 0.6 : 1,
                 marginTop: "4px",
                 boxSizing: "border-box",
-                transition: "all 0.2s ease",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 transform: "translateY(0)",
+                position: "relative",
               }}
               onMouseOver={(e) => {
                 if (!isLoading) {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                  e.currentTarget.style.transform = "translateY(-3px) scale(1.01)";
+                  e.currentTarget.style.boxShadow = "0 10px 30px -5px rgba(17, 24, 39, 0.4)";
                 }
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.transform = "translateY(0) scale(1)";
                 e.currentTarget.style.boxShadow = "none";
               }}
               onMouseDown={(e) => {
                 if (!isLoading) {
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.transform = "translateY(-1px) scale(0.99)";
                 }
               }}
             >
-              {isLoading ? "Creating account..." : "Create Account"}
+              {/* Shine sweep effect */}
+              <span
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.1) 50%, transparent 55%)",
+                  transform: "translateX(-100%)",
+                  transition: "transform 0.6s ease",
+                }}
+                className="group-hover:translate-x-[200%]"
+              />
+              <span style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating account...
+                  </>
+                ) : "Create Account"}
+              </span>
             </button>
           </form>
 
@@ -342,90 +432,112 @@ export default function SignUpPage() {
           {/* Google Sign In */}
           <a
             href="/api/auth/google"
+            className="group relative overflow-hidden"
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: "12px",
               width: "100%",
-              padding: "12px",
+              padding: "14px",
               fontSize: "15px",
               fontWeight: 600,
               color: "#374151",
               backgroundColor: "#fff",
-              border: "1px solid #d1d5db",
-              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "12px",
               cursor: "pointer",
               textDecoration: "none",
-              transition: "all 0.2s ease",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               boxSizing: "border-box",
               transform: "translateY(0)",
+              position: "relative",
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = "#f9fafb";
-              e.currentTarget.style.borderColor = "#9ca3af";
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+              e.currentTarget.style.borderColor = "#d1d5db";
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.1)";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = "#fff";
-              e.currentTarget.style.borderColor = "#d1d5db";
+              e.currentTarget.style.borderColor = "#e5e7eb";
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24">
+            {/* Shine effect */}
+            <span
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.8) 45%, rgba(255,255,255,0.4) 50%, transparent 55%)",
+                transform: "translateX(-100%)",
+                transition: "transform 0.6s ease",
+              }}
+              className="group-hover:translate-x-[200%]"
+            />
+            <svg width="20" height="20" viewBox="0 0 24 24" style={{ position: "relative", zIndex: 10 }}>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Continue with Google
+            <span style={{ position: "relative", zIndex: 10 }}>Continue with Google</span>
           </a>
 
-          <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#6b7280" }}>
+          <div style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#6b7280", position: "relative" }}>
             Already have an account?{" "}
             <Link
               to="/sign-in"
+              className="group inline-block"
               style={{
                 color: "#111827",
                 fontWeight: 600,
                 textDecoration: "none",
                 transition: "all 0.2s ease",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.color = "#374151";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.color = "#111827";
+                position: "relative",
               }}
             >
-              Sign in
+              <span className="group-hover:text-gray-600 transition-colors">Sign in</span>
+              <span
+                style={{
+                  position: "absolute",
+                  bottom: "-2px",
+                  left: 0,
+                  width: "0%",
+                  height: "2px",
+                  background: "#111827",
+                  transition: "width 0.3s ease",
+                }}
+                className="group-hover:w-full"
+              />
             </Link>
           </div>
         </div>
 
         {/* Back link */}
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
+        <div
+          style={{ textAlign: "center", marginTop: "24px" }}
+          className="animate-in fade-in duration-700"
+        >
           <Link
             to="/"
+            className="group inline-flex items-center gap-1"
             style={{
               color: "#6b7280",
               textDecoration: "none",
               fontSize: "14px",
               transition: "all 0.2s ease",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.color = "#374151";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.color = "#6b7280";
             }}
           >
-            <span>←</span> Back to Home
+            <span
+              style={{ transition: "transform 0.3s ease" }}
+              className="group-hover:-translate-x-1"
+            >
+              ←
+            </span>
+            <span className="group-hover:text-gray-800 transition-colors">Back to Home</span>
           </Link>
         </div>
       </div>

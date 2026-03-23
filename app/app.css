@@ -34,6 +34,12 @@
 html,
 body {
   @apply bg-white;
+  scroll-behavior: smooth;
+}
+
+/* Global smooth transitions */
+*, *::before, *::after {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* App-specific element defaults — scoped to .app-content to avoid auth pages */
@@ -51,9 +57,26 @@ body {
 }
 .app-content input {
   @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
+  transition: all 0.3s ease;
+}
+.app-content input:focus {
+  @apply ring-2 ring-gray-200;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), 0 0 0 4px rgba(17, 24, 39, 0.05);
+  transform: scale(1.01);
+}
+.app-content input:hover:not(:focus) {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 .app-content textarea {
   @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
+  transition: all 0.3s ease;
+}
+.app-content textarea:focus {
+  @apply ring-2 ring-gray-200;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), 0 0 0 4px rgba(17, 24, 39, 0.05);
+}
+.app-content textarea:hover:not(:focus) {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 .app-content form {
   @apply flex flex-col items-start gap-8 w-full;
@@ -65,9 +88,28 @@ body {
   }
   .gradient-border {
     @apply bg-gray-50 border border-gray-200 p-4 rounded-2xl;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .gradient-border:hover {
+    @apply border-gray-300;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
   .primary-button {
-    @apply bg-gray-900 text-white rounded-lg px-4 py-2 cursor-pointer w-full hover:bg-gray-800 transition-colors;
+    @apply bg-gray-900 text-white rounded-lg px-4 py-2 cursor-pointer w-full hover:bg-gray-800;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(17, 24, 39, 0.3);
+  }
+
+  .primary-button:active {
+    transform: translateY(0) scale(0.98);
   }
   .resume-nav {
     @apply flex flex-row justify-between items-center p-4 border-b border-gray-200;
@@ -80,9 +122,44 @@ body {
   }
   .back-button {
     @apply flex flex-row items-center gap-2 border border-gray-200 rounded-lg p-2 shadow-sm;
+    transition: all 0.3s ease;
+  }
+
+  .back-button:hover {
+    @apply border-gray-300 shadow-md;
+    transform: translateX(-4px);
+  }
+
+  .back-button:active {
+    transform: translateX(0);
   }
   .auth-button {
-    @apply bg-gray-900 rounded-lg py-4 px-8 cursor-pointer w-[600px] max-md:w-full text-3xl font-semibold text-white hover:bg-gray-800 transition-colors;
+    @apply bg-gray-900 rounded-lg py-4 px-8 cursor-pointer w-[600px] max-md:w-full text-3xl font-semibold text-white hover:bg-gray-800;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  .auth-button:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 15px 30px -5px rgba(17, 24, 39, 0.4);
+  }
+
+  .auth-button:hover::before {
+    transform: translateX(100%);
+  }
+
+  .auth-button:active {
+    transform: translateY(-1px) scale(0.99);
   }
   .main-section {
     @apply flex flex-col items-center gap-8 pt-12 mx-15 pb-5;
@@ -95,7 +172,14 @@ body {
   }
 
   .resume-card {
-    @apply flex flex-col gap-4 w-full lg:w-[450px] xl:w-[490px] bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow;
+    @apply flex flex-col gap-4 w-full lg:w-[450px] xl:w-[490px] bg-white rounded-2xl p-6;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    will-change: transform, box-shadow;
+  }
+
+  .resume-card:hover {
+    @apply shadow-2xl;
   }
 
   .resume-card-header {
@@ -108,6 +192,11 @@ body {
 
   .navbar {
     @apply flex flex-row justify-between items-center bg-white rounded-none p-4 w-full px-10 max-w-[1200px] mx-auto;
+    transition: all 0.3s ease;
+  }
+
+  .navbar:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
   
   /* Custom Scrollbar Styles */
@@ -210,6 +299,14 @@ body {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+  }
+
+  /* NEW: Float animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-15px) rotate(2deg); }
+    50% { transform: translateY(-8px) rotate(-1deg); }
+    75% { transform: translateY(-20px) rotate(1deg); }
   }
 
   /* NEW: Ripple effect */
@@ -674,6 +771,159 @@ body {
   /* NEW: Notification bell shake */
   .bell-shake:hover {
     animation: shake 0.5s ease-in-out;
+  }
+
+  /* NEW: Smooth focus states for all inputs */
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  /* NEW: Enhanced link underline animation */
+  .link-animated {
+    position: relative;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .link-animated::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .link-animated:hover::after {
+    width: 100%;
+  }
+
+  /* NEW: Glass morphism card effect */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    @apply transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  /* NEW: Smooth page transitions */
+  .page-transition {
+    animation: page-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes page-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* NEW: Interactive icon button */
+  .icon-button {
+    @apply transition-all duration-200 p-2 rounded-lg;
+  }
+
+  .icon-button:hover {
+    @apply bg-gray-100;
+    transform: scale(1.1);
+  }
+
+  .icon-button:active {
+    transform: scale(0.95);
+  }
+
+  /* NEW: Subtle entrance animation for cards */
+  .card-entrance {
+    animation: card-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+  }
+
+  @keyframes card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* NEW: Hover scale for small interactive elements */
+  .hover-scale {
+    @apply transition-transform duration-200;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .hover-scale:active {
+    transform: scale(0.98);
+  }
+
+  /* NEW: Subtle shadow lift */
+  .shadow-lift {
+    @apply transition-all duration-300;
+  }
+
+  .shadow-lift:hover {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* NEW: Animated border glow on focus */
+  .focus-glow:focus {
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1), 0 0 20px rgba(17, 24, 39, 0.05);
+    border-color: rgba(17, 24, 39, 0.3);
+  }
+
+  /* NEW: Staggered fade in for lists */
+  .stagger-fade-in > * {
+    animation: stagger-item 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  .stagger-fade-in > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-fade-in > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-fade-in > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-fade-in > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-fade-in > *:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-fade-in > *:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes stagger-item {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* NEW: Button press effect */
+  .btn-press {
+    @apply transition-all duration-100;
+  }
+
+  .btn-press:active {
+    transform: scale(0.97) translateY(1px);
+    box-shadow: none;
   }
 
   /* Rich text editor styles for resume editing */
