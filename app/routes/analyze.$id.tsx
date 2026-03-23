@@ -1299,14 +1299,18 @@ export default function AnalyzeResume() {
                         extractTextFromWord();
                       }}
                       disabled={isExtracting}
-                      className={`btn-interactive px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 border group ${
+                      className={`group relative overflow-hidden px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 border transition-all duration-300 ${
                         canEditResume
-                          ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
+                          ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-lg'
                           : 'bg-gray-100 text-ink-500 border-gray-200'
                       } ${isExtracting ? 'opacity-50' : ''}`}
                       title={!canEditResume ? 'Editing is available for Word documents (.doc/.docx) only' : ''}
                     >
-                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {/* Shine effect */}
+                      {canEditResume && (
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                      )}
+                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -1314,15 +1318,16 @@ export default function AnalyzeResume() {
                           d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
                       </svg>
-                      {isExtracting ? 'Loading...' : 'Edit'}
+                      <span className="relative z-10">{isExtracting ? 'Loading...' : 'Edit'}</span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setIsEditMode(false)}
-                      className="btn-interactive px-4 py-2 bg-gray-100 text-ink-700 rounded-xl font-medium hover:bg-gray-200 text-sm flex items-center gap-2 border border-gray-200 group"
+                      className="group relative overflow-hidden px-4 py-2 bg-gray-100 text-ink-700 rounded-xl font-medium hover:bg-gray-200 text-sm flex items-center gap-2 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
                     >
-                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path
                           strokeLinecap="round"
@@ -1331,7 +1336,7 @@ export default function AnalyzeResume() {
                           d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                         />
                       </svg>
-                      View
+                      <span className="relative z-10">View</span>
                     </button>
                   )}
 
@@ -1339,22 +1344,24 @@ export default function AnalyzeResume() {
                     type="button"
                     onClick={handleMatchResume}
                     disabled={isMatching || !resume.job_description || !resume.job_title}
-                    className="px-4 py-2 bg-white text-ink-900 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm border border-gray-200"
+                    className="group relative overflow-hidden px-4 py-2 bg-white text-ink-900 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm border border-gray-200 hover:-translate-y-0.5 hover:shadow-md"
                     title={!resume.job_description || !resume.job_title ? 'Job title and description are required' : ''}
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <svg className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    {isMatching ? 'Matching...' : 'Match to job'}
+                    <span className="relative z-10">{isMatching ? 'Matching...' : 'Match to job'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleDownload}
                     disabled={isDownloading}
-                    className="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 flex items-center gap-2 text-sm"
+                    className="group relative overflow-hidden px-4 py-2 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-all duration-300 disabled:opacity-50 flex items-center gap-2 text-sm hover:-translate-y-0.5 hover:shadow-lg"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <svg className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1362,7 +1369,7 @@ export default function AnalyzeResume() {
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                       />
                     </svg>
-                    {isDownloading ? 'Downloading...' : 'Download'}
+                    <span className="relative z-10">{isDownloading ? 'Downloading...' : 'Download'}</span>
                   </button>
                 </div>
               </div>
