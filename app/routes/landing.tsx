@@ -174,9 +174,9 @@ export default function LandingPage() {
             </Link>
             <Link
               to="/sign-up"
-              className="group relative overflow-hidden text-sm sm:text-base"
+              className="hidden sm:inline-flex group relative overflow-hidden"
               style={{
-                padding: "8px 16px",
+                padding: "10px 24px",
                 background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
                 color: "#fff",
                 fontWeight: 600,
