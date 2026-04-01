@@ -100,10 +100,10 @@ export default function ContactPage() {
 
       {/* Main Content */}
       <section
+        className="section-padding"
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
-          padding: "80px 24px",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "60px" }}>

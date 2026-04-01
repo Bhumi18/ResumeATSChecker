@@ -165,10 +165,10 @@ export default function TermsPage() {
 
       {/* Header */}
       <section
+        className="section-padding"
         style={{
           maxWidth: "800px",
           margin: "0 auto",
-          padding: "80px 24px 40px",
           textAlign: "center",
         }}
       >
@@ -197,10 +197,10 @@ export default function TermsPage() {
         }}
       >
         <div
+          className="legal-content"
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.95)",
             borderRadius: "24px",
-            padding: "48px",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.1)",
           }}
         >

@@ -102,26 +102,12 @@ export default function LandingPage() {
         }}
       >
         <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "16px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
+          className="flex items-center justify-between max-w-[1200px] mx-auto px-4 sm:px-6 py-4"
         >
           {/* Logo */}
           <Link to="/" style={{ textDecoration: "none" }} className="group">
             <div
-              style={{
-                fontSize: "28px",
-                fontWeight: 700,
-                color: "#111827",
-                letterSpacing: "-1px",
-                transition: "all 0.3s ease",
-              }}
-              className="group-hover:scale-105 group-hover:tracking-wide"
+              className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight transition-all group-hover:scale-105"
             >
               ATSEngine
             </div>
@@ -129,12 +115,7 @@ export default function LandingPage() {
 
           {/* Desktop Navigation Links */}
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-            className="hidden md:flex"
+            className="hidden md:flex items-center gap-2"
           >
             {navLinks.map((link) => (
               <a
@@ -157,13 +138,12 @@ export default function LandingPage() {
           </div>
 
           {/* Auth Buttons */}
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div className="flex gap-2 sm:gap-3 items-center">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden"
+              className="md:hidden p-2"
               style={{
-                padding: "8px",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -181,6 +161,7 @@ export default function LandingPage() {
 
             <Link
               to="/sign-in"
+              className="hidden sm:block hover:text-gray-900"
               style={{
                 padding: "10px 20px",
                 color: "#374151",
@@ -188,15 +169,14 @@ export default function LandingPage() {
                 textDecoration: "none",
                 transition: "all 0.2s ease",
               }}
-              className="hover:text-gray-900 hidden sm:block"
             >
               Sign In
             </Link>
             <Link
               to="/sign-up"
-              className="group relative overflow-hidden"
+              className="group relative overflow-hidden text-sm sm:text-base"
               style={{
-                padding: "10px 24px",
+                padding: "8px 16px",
                 background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
                 color: "#fff",
                 fontWeight: 600,
@@ -231,45 +211,33 @@ export default function LandingPage() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div
-            style={{
-              padding: "16px 24px",
-              backgroundColor: "rgba(255, 255, 255, 0.98)",
-              borderTop: "1px solid #e5e7eb",
-            }}
-            className="md:hidden"
+            className="md:hidden px-4 py-4 bg-white/98 border-t border-gray-200 animate-in slide-in-from-top-2 duration-200"
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{
-                    padding: "12px 16px",
-                    color: "#374151",
-                    fontWeight: 500,
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    transition: "all 0.2s ease",
-                  }}
-                  className="hover:bg-gray-100"
+                  className="px-4 py-3 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   {link.label}
                 </a>
               ))}
-              <hr style={{ margin: "8px 0", border: "none", borderTop: "1px solid #e5e7eb" }} />
+              <hr className="my-2 border-gray-200" />
               <Link
                 to="/sign-in"
                 onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  padding: "12px 16px",
-                  color: "#374151",
-                  fontWeight: 500,
-                  textDecoration: "none",
-                  borderRadius: "8px",
-                }}
+                className="px-4 py-3 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Sign In
+              </Link>
+              <Link
+                to="/sign-up"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-2 px-4 py-3 bg-gray-900 text-white font-semibold rounded-lg text-center hover:bg-gray-800 transition-colors"
+              >
+                Get Started Free
               </Link>
             </div>
           </div>
@@ -278,10 +246,10 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section
+        className="section-padding"
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
-          padding: "80px 24px 100px",
           textAlign: "center",
           position: "relative",
           zIndex: 10,
@@ -342,13 +310,7 @@ export default function LandingPage() {
 
           {/* CTA Buttons */}
           <div
-            style={{
-              display: "flex",
-              gap: "16px",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-            className="animate-in fade-in slide-in-from-bottom-4 duration-700"
+            className="hero-buttons animate-in fade-in slide-in-from-bottom-4 duration-700"
           >
             <Link
               to="/sign-up"
@@ -1556,11 +1518,7 @@ export default function LandingPage() {
 
             {/* Right - Links Grid */}
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "32px",
-              }}
+              className="footer-links-grid"
             >
               {/* Navigate Column */}
               <div>
