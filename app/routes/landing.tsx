@@ -1466,219 +1466,232 @@ export default function LandingPage() {
       {/* Footer */}
       <footer
         style={{
-          borderTop: "1px solid #e5e7eb",
           backgroundColor: "#111827",
           color: "#fff",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* Main Footer */}
+        {/* Subtle gradient overlay */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)",
+          }}
+        />
+
+        {/* Main Footer Content */}
         <div
           style={{
             maxWidth: "1200px",
             margin: "0 auto",
-            padding: "64px 24px 48px",
+            padding: "80px 24px 40px",
           }}
         >
+          {/* Top Section - Brand + Links */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gridTemplateColumns: "1fr",
               gap: "48px",
-              marginBottom: "48px",
+              marginBottom: "64px",
             }}
+            className="md:grid-cols-2"
           >
-            {/* Brand Column */}
-            <div style={{ gridColumn: "span 2" }}>
+            {/* Left - Brand Section */}
+            <div style={{ maxWidth: "400px" }}>
               <div
                 style={{
-                  fontSize: "28px",
+                  fontSize: "32px",
                   fontWeight: 700,
                   letterSpacing: "-1px",
                   marginBottom: "16px",
+                  background: "linear-gradient(135deg, #fff 0%, #9ca3af 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
                 }}
               >
                 ATSEngine
               </div>
-              <p style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.6)", marginBottom: "24px", maxWidth: "300px", lineHeight: 1.6 }}>
-                Engineering your resume for ATS success. AI-powered analysis to help you land your dream job.
+              <p style={{ fontSize: "15px", color: "rgba(255, 255, 255, 0.6)", lineHeight: 1.7, marginBottom: "28px" }}>
+                Engineering your resume for ATS success. Our AI-powered platform helps job seekers optimize their resumes and land more interviews.
               </p>
-            </div>
 
-            {/* Product Column */}
-            <div>
-              <h4 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "20px", color: "#fff" }}>
-                Product
-              </h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {[
-                  { name: "Features", href: "#features" },
-                  { name: "Pricing", href: "#pricing" },
-                  { name: "How It Works", href: "#how-it-works" },
-                ].map((item) => (
-                  <li key={item.name} style={{ marginBottom: "12px" }}>
-                    <a
-                      href={item.href}
-                      style={{
-                        color: "rgba(255, 255, 255, 0.6)",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                        transition: "color 0.2s ease",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)")}
-                    >
-                      {item.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Company Column */}
-            <div>
-              <h4 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "20px", color: "#fff" }}>
-                Company
-              </h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {[
-                  { name: "About Us", href: "/about" },
-                  { name: "Contact", href: "/contact" },
-                ].map((item) => (
-                  <li key={item.name} style={{ marginBottom: "12px" }}>
-                    <a
-                      href={item.href}
-                      style={{
-                        color: "rgba(255, 255, 255, 0.6)",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                        transition: "color 0.2s ease",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)")}
-                    >
-                      {item.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Resources Column */}
-            <div>
-              <h4 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "20px", color: "#fff" }}>
-                Resources
-              </h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {[
-                  { name: "Help Center", href: "/contact" },
-                ].map((item) => (
-                  <li key={item.name} style={{ marginBottom: "12px" }}>
-                    <a
-                      href={item.href}
-                      style={{
-                        color: "rgba(255, 255, 255, 0.6)",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                        transition: "color 0.2s ease",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)")}
-                    >
-                      {item.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal Column */}
-            <div>
-              <h4 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "20px", color: "#fff" }}>
-                Legal
-              </h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {[
-                  { name: "Privacy Policy", href: "/privacy" },
-                  { name: "Terms of Service", href: "/terms" },
-                ].map((item) => (
-                  <li key={item.name} style={{ marginBottom: "12px" }}>
-                    <a
-                      href={item.href}
-                      style={{
-                        color: "rgba(255, 255, 255, 0.6)",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                        transition: "color 0.2s ease",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)")}
-                    >
-                      {item.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Newsletter Signup */}
-          <div
-            style={{
-              padding: "32px",
-              backgroundColor: "rgba(255, 255, 255, 0.05)",
-              borderRadius: "16px",
-              marginBottom: "48px",
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "24px",
-            }}
-          >
-            <div>
-              <h4 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px" }}>
-                Stay up to date
-              </h4>
-              <p style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.6)" }}>
-                Get the latest resume tips and product updates in your inbox.
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <input
-                type="email"
-                placeholder="Enter your email"
+              {/* CTA Button */}
+              <Link
+                to="/sign-up"
                 style={{
-                  padding: "12px 16px",
-                  borderRadius: "10px",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "#fff",
-                  fontSize: "14px",
-                  width: "250px",
-                  outline: "none",
-                }}
-              />
-              <button
-                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
                   padding: "12px 24px",
                   backgroundColor: "#fff",
                   color: "#111827",
                   fontWeight: 600,
-                  borderRadius: "10px",
-                  border: "none",
-                  cursor: "pointer",
                   fontSize: "14px",
+                  borderRadius: "10px",
+                  textDecoration: "none",
                   transition: "all 0.2s ease",
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.backgroundColor = "#f3f4f6";
+                  e.currentTarget.style.transform = "translateY(-2px)";
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.backgroundColor = "#fff";
+                  e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
-                Subscribe
-              </button>
+                Get Started Free
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* Right - Links Grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "32px",
+              }}
+            >
+              {/* Navigate Column */}
+              <div>
+                <h4 style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  marginBottom: "20px",
+                  color: "rgba(255, 255, 255, 0.4)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}>
+                  Navigate
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {[
+                    { name: "Features", href: "#features" },
+                    { name: "How It Works", href: "#how-it-works" },
+                    { name: "Pricing", href: "#pricing" },
+                  ].map((item) => (
+                    <li key={item.name} style={{ marginBottom: "14px" }}>
+                      <a
+                        href={item.href}
+                        style={{
+                          color: "rgba(255, 255, 255, 0.7)",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                          transition: "all 0.2s ease",
+                          display: "inline-block",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.transform = "translateX(4px)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.color = "rgba(255, 255, 255, 0.7)";
+                          e.currentTarget.style.transform = "translateX(0)";
+                        }}
+                      >
+                        {item.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Company Column */}
+              <div>
+                <h4 style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  marginBottom: "20px",
+                  color: "rgba(255, 255, 255, 0.4)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}>
+                  Company
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {[
+                    { name: "About Us", href: "/about" },
+                    { name: "Contact", href: "/contact" },
+                    { name: "Help Center", href: "/contact" },
+                  ].map((item) => (
+                    <li key={item.name} style={{ marginBottom: "14px" }}>
+                      <a
+                        href={item.href}
+                        style={{
+                          color: "rgba(255, 255, 255, 0.7)",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                          transition: "all 0.2s ease",
+                          display: "inline-block",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.transform = "translateX(4px)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.color = "rgba(255, 255, 255, 0.7)";
+                          e.currentTarget.style.transform = "translateX(0)";
+                        }}
+                      >
+                        {item.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Legal Column */}
+              <div>
+                <h4 style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  marginBottom: "20px",
+                  color: "rgba(255, 255, 255, 0.4)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}>
+                  Legal
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {[
+                    { name: "Privacy Policy", href: "/privacy" },
+                    { name: "Terms of Service", href: "/terms" },
+                  ].map((item) => (
+                    <li key={item.name} style={{ marginBottom: "14px" }}>
+                      <a
+                        href={item.href}
+                        style={{
+                          color: "rgba(255, 255, 255, 0.7)",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                          transition: "all 0.2s ease",
+                          display: "inline-block",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.transform = "translateX(4px)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.color = "rgba(255, 255, 255, 0.7)";
+                          e.currentTarget.style.transform = "translateX(0)";
+                        }}
+                      >
+                        {item.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -1690,31 +1703,16 @@ export default function LandingPage() {
               alignItems: "center",
               justifyContent: "space-between",
               gap: "16px",
-              paddingTop: "24px",
-              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+              paddingTop: "32px",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
             }}
           >
-            <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.5)" }}>
+            <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.4)" }}>
               © {new Date().getFullYear()} ATSEngine. All rights reserved.
             </p>
-            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
-              {["Privacy", "Terms", "Cookies", "Sitemap"].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  style={{
-                    color: "rgba(255, 255, 255, 0.5)",
-                    textDecoration: "none",
-                    fontSize: "13px",
-                    transition: "color 0.2s ease",
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                  onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255, 255, 255, 0.5)")}
-                >
-                  {item}
-                </a>
-              ))}
-            </div>
+            <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.4)" }}>
+              Made with care for job seekers everywhere
+            </p>
           </div>
         </div>
       </footer>
