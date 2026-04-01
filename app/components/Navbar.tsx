@@ -11,7 +11,7 @@ const Navbar: () => JSX.Element = () => {
   return (
     <nav className="navbar bg-white/95 border-b border-gray-200 sticky top-0 z-50 backdrop-blur-md transition-all duration-300">
       <Link
-        to="/"
+        to="/dashboard"
         className="group flex items-center gap-2 transition-all duration-300"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

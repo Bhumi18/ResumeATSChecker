@@ -21,7 +21,7 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   if (isSignedIn) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -32,7 +32,7 @@ export default function SignInPage() {
     const result = await signIn(email, password);
 
     if (result.success) {
-      navigate("/");
+      navigate("/dashboard");
     } else {
       setError(result.error || "Sign in failed");
     }

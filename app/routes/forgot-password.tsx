@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   if (isSignedIn) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: FormEvent) => {

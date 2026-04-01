@@ -25,7 +25,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   if (isSignedIn) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -47,7 +47,7 @@ export default function SignUpPage() {
     const result = await signUp(email, password, firstName, lastName);
 
     if (result.success) {
-      navigate("/");
+      navigate("/dashboard");
     } else {
       setError(result.error || "Sign up failed");
     }

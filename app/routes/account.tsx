@@ -663,7 +663,7 @@ export default function AccountPage() {
         {/* Back Button */}
         <div className="mt-6">
           <button 
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
             className="inline-flex items-center gap-2 text-[#606beb] hover:text-[#4957eb] font-semibold transition-all"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

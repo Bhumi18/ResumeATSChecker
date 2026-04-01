@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   if (isSignedIn) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!token) {

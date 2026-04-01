@@ -83,10 +83,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       return Response.redirect(`${url.origin}/sign-in?error=session_failed`);
     }
 
-    // Set session cookie and redirect to home
+    // Set session cookie and redirect to dashboard
     const headers = new Headers();
     headers.set('Set-Cookie', `session=${sessionToken}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${30 * 24 * 60 * 60}`);
-    headers.set('Location', url.origin + '/');
+    headers.set('Location', url.origin + '/dashboard');
 
     return new Response(null, {
       status: 302,
