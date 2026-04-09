@@ -1,292 +1,166 @@
 import type { Route } from "./+types/about";
 import { Link } from "react-router";
 
+const stats = [
+  { label: "Resumes analyzed", value: "12k+" },
+  { label: "Average score lift", value: "34%" },
+  { label: "Industries covered", value: "40+" },
+];
+
+const milestones = [
+  {
+    title: "The Problem",
+    description:
+      "Most applicants are rejected before a recruiter reads a single line. We built ATSEngine to make that first filter easier to pass.",
+  },
+  {
+    title: "The Build",
+    description:
+      "We combined resume parsing, keyword diagnostics, and actionable writing suggestions in one guided flow.",
+  },
+  {
+    title: "The Mission",
+    description:
+      "Give every job seeker a fair, practical, and data-informed way to improve their resume with confidence.",
+  },
+];
+
+const values = [
+  {
+    title: "Clarity Over Buzzwords",
+    description:
+      "We turn complex ATS logic into concrete recommendations you can apply in minutes.",
+  },
+  {
+    title: "Built For Real Hiring",
+    description:
+      "Our feedback is grounded in modern screening patterns and recruiter expectations.",
+  },
+  {
+    title: "Privacy As A Default",
+    description:
+      "Your resume data stays yours. We do not sell personal information and you stay in control.",
+  },
+  {
+    title: "Constantly Improving",
+    description:
+      "As hiring trends evolve, our analysis evolves too so your resume stays competitive.",
+  },
+];
+
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "About Us - ATSEngine" },
-    { name: "description", content: "Learn about ATSEngine - Engineering Your Resume for ATS Success" },
+    {
+      name: "description",
+      content: "Learn about ATSEngine and how we help job seekers optimize resumes for ATS and recruiters.",
+    },
   ];
 }
 
 export default function AboutPage() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%)",
-        fontFamily: '"Mona Sans", ui-sans-serif, system-ui, sans-serif',
-      }}
-    >
-      {/* Navigation */}
-      <nav
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "16px 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <span style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>ATSEngine</span>
+    <div className="about-page">
+      <div className="about-bg about-bg-top" aria-hidden="true" />
+      <div className="about-bg about-bg-bottom" aria-hidden="true" />
+
+      <nav className="about-nav">
+        <div className="about-nav-inner">
+          <Link to="/" className="about-logo-link">
+            <span className="about-logo">ATSEngine</span>
           </Link>
-          <Link
-            to="/"
-            style={{
-              color: "#6b7280",
-              textDecoration: "none",
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <span>←</span> Back to Home
+          <Link to="/" className="about-nav-back">
+            Back to Home
           </Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section
-        className="section-padding"
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          textAlign: "center",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "clamp(36px, 5vw, 56px)",
-            fontWeight: 700,
-            color: "#111827",
-            letterSpacing: "-2px",
-            marginBottom: "24px",
-          }}
-        >
-          About ATSEngine
-        </h1>
-        <p
-          style={{
-            fontSize: "18px",
-            color: "#6b7280",
-            lineHeight: 1.7,
-            maxWidth: "600px",
-            margin: "0 auto",
-          }}
-        >
-          We're on a mission to help job seekers navigate the modern hiring landscape
-          by making their resumes ATS-friendly and interview-ready.
-        </p>
-      </section>
+      <main className="about-main">
+        <section className="about-hero">
+          <p className="about-kicker">Our mission</p>
+          <h1 className="about-title">We engineer resumes that get seen.</h1>
+          <p className="about-subtitle">
+            ATSEngine helps job seekers bridge the gap between submitting applications and getting interviews.
+            We combine AI analysis and practical writing guidance so resumes perform for ATS systems and human recruiters.
+          </p>
+          <div className="about-hero-actions">
+            <Link to="/upload" className="about-button about-button-primary">
+              Start analysis
+            </Link>
+            <Link to="/contact" className="about-button about-button-secondary">
+              Talk to the team
+            </Link>
+          </div>
+          <div className="about-stats-grid">
+            {stats.map((item) => (
+              <article key={item.label} className="about-stat-card">
+                <p className="about-stat-value">{item.value}</p>
+                <p className="about-stat-label">{item.label}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      {/* Our Story */}
-      <section
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          padding: "0 24px 80px",
-        }}
-      >
-        <div
-          className="legal-content"
-          style={{
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            borderRadius: "24px",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "28px",
-              fontWeight: 700,
-              color: "#111827",
-              marginBottom: "24px",
-            }}
-          >
-            Our Story
-          </h2>
-          <div style={{ color: "#4b5563", fontSize: "16px", lineHeight: 1.8 }}>
-            <p style={{ marginBottom: "20px" }}>
-              ATSEngine was born out of frustration. As job seekers ourselves, we experienced
-              firsthand the disconnect between submitting dozens of applications and hearing
-              crickets in return. We discovered that over 75% of resumes never reach human eyes
-              — they're filtered out by Applicant Tracking Systems before recruiters even see them.
-            </p>
-            <p style={{ marginBottom: "20px" }}>
-              We built ATSEngine to level the playing field. Using advanced AI technology,
-              we analyze resumes the same way ATS software does, but we go further — we provide
-              actionable insights to help you optimize your resume for both machines and humans.
+        <section className="about-story-panel">
+          <div className="about-story-copy">
+            <p className="about-section-tag">Why we built it</p>
+            <h2>The hiring pipeline changed. Resume advice did not.</h2>
+            <p>
+              We started ATSEngine after seeing talented candidates disappear in automated filters. Most people were
+              still using generic templates and keyword stuffing strategies that no longer worked.
             </p>
             <p>
-              Today, ATSEngine has helped thousands of job seekers improve their resumes and
-              land interviews at companies they never thought possible. And we're just getting started.
+              Our goal is simple: give job seekers clear, modern, and measurable feedback so every submission has a
+              better chance of becoming a real conversation.
             </p>
           </div>
-        </div>
-      </section>
+          <div className="about-timeline">
+            {milestones.map((item, index) => (
+              <article
+                key={item.title}
+                className="about-timeline-item"
+                style={{ animationDelay: `${index * 120}ms` }}
+              >
+                <span className="about-timeline-index">0{index + 1}</span>
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      {/* Values */}
-      <section
-        style={{
-          maxWidth: "1000px",
-          margin: "0 auto",
-          padding: "0 24px 80px",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "28px",
-            fontWeight: 700,
-            color: "#111827",
-            textAlign: "center",
-            marginBottom: "48px",
-          }}
-        >
-          Our Values
-        </h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {[
-            {
-              title: "Transparency",
-              description: "We believe in showing you exactly how ATS systems work and why certain changes matter. No black boxes here.",
-              icon: "👁️",
-            },
-            {
-              title: "Accessibility",
-              description: "Everyone deserves a fair shot at their dream job. That's why we offer our core features completely free during beta.",
-              icon: "🌍",
-            },
-            {
-              title: "Privacy First",
-              description: "Your resume contains sensitive information. We never sell your data and you can delete it anytime.",
-              icon: "🔒",
-            },
-            {
-              title: "Continuous Improvement",
-              description: "The job market evolves, and so do we. We constantly update our algorithms based on the latest ATS trends.",
-              icon: "📈",
-            },
-          ].map((value, i) => (
-            <div
-              key={i}
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                borderRadius: "20px",
-                padding: "32px",
-                boxShadow: "0 10px 40px -10px rgba(0, 0, 0, 0.08)",
-                transition: "all 0.3s ease",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.boxShadow = "0 20px 40px -10px rgba(0, 0, 0, 0.15)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 10px 40px -10px rgba(0, 0, 0, 0.08)";
-              }}
-            >
-              <div style={{ fontSize: "40px", marginBottom: "16px" }}>{value.icon}</div>
-              <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#111827", marginBottom: "12px" }}>
-                {value.title}
-              </h3>
-              <p style={{ fontSize: "15px", color: "#6b7280", lineHeight: 1.6 }}>
-                {value.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+        <section className="about-values-section">
+          <div className="about-values-heading">
+            <p className="about-section-tag">Principles</p>
+            <h2>How we design every feature</h2>
+          </div>
+          <div className="about-values-grid">
+            {values.map((value, index) => (
+              <article key={value.title} className="about-value-card" style={{ animationDelay: `${index * 90}ms` }}>
+                <span className="about-value-chip">0{index + 1}</span>
+                <h3>{value.title}</h3>
+                <p>{value.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      {/* Team Section */}
-      <section
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          padding: "0 24px 80px",
-          textAlign: "center",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "28px",
-            fontWeight: 700,
-            color: "#111827",
-            marginBottom: "16px",
-          }}
-        >
-          Built with Care
-        </h2>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#6b7280",
-            maxWidth: "500px",
-            margin: "0 auto 40px",
-            lineHeight: 1.7,
-          }}
-        >
-          ATSEngine is built by a small team passionate about helping people find meaningful work.
-        </p>
-        <Link
-          to="/contact"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "14px 28px",
-            background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: "15px",
-            borderRadius: "12px",
-            textDecoration: "none",
-            transition: "all 0.3s ease",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 10px 30px -5px rgba(17, 24, 39, 0.3)";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          Get in Touch
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </Link>
-      </section>
+        <section className="about-cta-panel">
+          <p className="about-section-tag">Built with care</p>
+          <h2>Ready to make your resume stronger?</h2>
+          <p>
+            Upload your resume, get an ATS score, and ship your next application with more confidence.
+          </p>
+          <Link to="/upload" className="about-button about-button-primary">
+            Analyze my resume
+          </Link>
+        </section>
+      </main>
 
-      {/* Footer */}
-      <footer
-        style={{
-          borderTop: "1px solid #e5e7eb",
-          padding: "32px 24px",
-          textAlign: "center",
-        }}
-      >
-        <p style={{ color: "#9ca3af", fontSize: "14px" }}>
-          © {new Date().getFullYear()} ATSEngine. All rights reserved.
-        </p>
+      <footer className="about-footer">
+        <p>Copyright {new Date().getFullYear()} ATSEngine. All rights reserved.</p>
       </footer>
     </div>
   );
