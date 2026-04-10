@@ -31,16 +31,17 @@ const Navbar: () => JSX.Element = () => {
           >Engine</span>
         </p>
       </Link>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {isSignedIn && (
           <Link
             to="/upload"
-            className="btn-interactive group px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 flex items-center gap-2 relative overflow-hidden"
+            aria-label="Upload Resume"
+            className="btn-interactive group px-3 sm:px-5 py-2 sm:py-2.5 bg-gray-900 text-white text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl hover:bg-gray-800 flex items-center gap-1.5 sm:gap-2 relative overflow-hidden"
           >
             {/* Shine effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             <svg
-              className="w-4 h-4 transition-all duration-300 group-hover:rotate-180 relative z-10"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 group-hover:rotate-180 relative z-10"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -52,7 +53,8 @@ const Navbar: () => JSX.Element = () => {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="relative z-10">Upload Resume</span>
+            <span className="relative z-10 hidden sm:inline">Upload Resume</span>
+            <span className="relative z-10 sm:hidden">Upload</span>
           </Link>
         )}
         {isSignedIn ? (
