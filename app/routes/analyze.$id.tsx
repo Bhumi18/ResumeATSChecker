@@ -639,7 +639,7 @@ export default function AnalyzeResume() {
           <div className="relative">
             <Navbar />
             <div className="max-w-3xl mx-auto px-6 py-16">
-              <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-10 shadow-sm flex flex-col items-center gap-4 text-center">
+              <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-6 sm:p-10 shadow-sm flex flex-col items-center gap-4 text-center">
                 <svg className="animate-spin h-10 w-10 text-ink-400" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -669,7 +669,7 @@ export default function AnalyzeResume() {
           <div className="relative">
             <Navbar />
             <div className="max-w-3xl mx-auto px-6 py-16">
-              <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-10 shadow-sm">
+              <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-6 sm:p-10 shadow-sm">
                 <div className="flex items-start gap-4">
                   <img src="/icons/warning.svg" alt="" aria-hidden className="w-6 h-6 mt-0.5" />
                   <div className="flex-1">
@@ -1024,11 +1024,11 @@ export default function AnalyzeResume() {
           )}
 
           {/* Main content */}
-          <div className="grid grid-cols-1 xl:grid-cols-[520px_1fr] gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-[520px_1fr] gap-4 sm:gap-6 lg:gap-8">
             {/* Left Side - Recommendations */}
             <aside className="xl:sticky xl:top-24 self-start animate-in fade-in slide-in-from-left-4 duration-700">
               <div className="bg-white/80 backdrop-blur rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-500">
-                <div className="px-6 py-5 border-b border-gray-200 flex items-start justify-between gap-4">
+                <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex items-start justify-between gap-3 sm:gap-4">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center transition-transform duration-300 hover:scale-110 hover:rotate-6">
                       <img src="/icons/pin.svg" alt="" aria-hidden className="w-5 h-5 opacity-80" />
@@ -1046,7 +1046,7 @@ export default function AnalyzeResume() {
                 </div>
 
                 {/* Category Pills */}
-                <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
+                <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-gray-200 bg-gray-50">
                   <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                     {tabs.map((tab) => {
                       const isActive = activeTab === tab.id;
@@ -1075,13 +1075,13 @@ export default function AnalyzeResume() {
                 </div>
 
                 {/* Tips Content */}
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   {tipsForActiveTab.length > 0 ? (
                     <div className="space-y-4">
                       {tipsForActiveTab.map((tip: any, index: number) => (
                         <div
                           key={index}
-                          className={`p-5 rounded-xl border bg-white/70 backdrop-blur transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default group animate-in fade-in slide-in-from-right-4 ${
+                          className={`p-4 sm:p-5 rounded-xl border bg-white/70 backdrop-blur transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default group animate-in fade-in slide-in-from-right-4 ${
                             tip.type === 'good' ? 'border-gray-200 border-l-4 border-l-green-500 hover:border-l-green-600' : 'border-gray-200 border-l-4 border-l-amber-500 hover:border-l-amber-600'
                           }`}
                           style={{ animationDelay: `${index * 0.1}s` }}
@@ -1132,7 +1132,7 @@ export default function AnalyzeResume() {
                   {activeTab === 'ats' && analysis && (
                     <div className="mt-6 space-y-4">
                       {analysis.keywords_found && analysis.keywords_found.length > 0 && (
-                        <div className="p-5 bg-green-50 border border-green-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="p-4 sm:p-5 bg-green-50 border border-green-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="p-1.5 bg-green-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1156,7 +1156,7 @@ export default function AnalyzeResume() {
                       )}
 
                       {analysis.keywords_missing && analysis.keywords_missing.length > 0 && (
-                        <div className="p-5 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: '0.1s' }}>
+                        <div className="p-4 sm:p-5 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: '0.1s' }}>
                           <div className="flex items-center gap-2 mb-2">
                             <div className="p-1.5 bg-red-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1198,7 +1198,7 @@ export default function AnalyzeResume() {
                   {activeTab === 'structure' && analysis && (
                     <div className="mt-6 space-y-4">
                       {analysis.sections_found && analysis.sections_found.length > 0 && (
-                        <div className="p-5 bg-green-50 border border-green-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="p-4 sm:p-5 bg-green-50 border border-green-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="p-1.5 bg-green-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1221,7 +1221,7 @@ export default function AnalyzeResume() {
                       )}
 
                       {analysis.sections_missing && analysis.sections_missing.length > 0 && (
-                        <div className="p-5 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: '0.1s' }}>
+                        <div className="p-4 sm:p-5 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: '0.1s' }}>
                           <div className="flex items-center gap-2 mb-2">
                             <div className="p-1.5 bg-red-100 rounded-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
                               <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1263,7 +1263,7 @@ export default function AnalyzeResume() {
 
             {/* Right Side - Resume Viewer */}
             <section className="bg-white/80 backdrop-blur rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-500 animate-in fade-in slide-in-from-right-4 duration-700">
-              <div className="px-6 py-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold text-ink-900 hover:text-ink-700 transition-colors">Resume</h2>
                   <div className="flex items-center gap-2 mt-1 min-w-0">
@@ -1280,7 +1280,7 @@ export default function AnalyzeResume() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap justify-end">
+                <div className="flex items-center gap-2 flex-wrap sm:justify-end w-full sm:w-auto">
                   {!isEditMode ? (
                     <button
                       type="button"
@@ -1299,7 +1299,7 @@ export default function AnalyzeResume() {
                         extractTextFromWord();
                       }}
                       disabled={isExtracting}
-                      className={`group relative overflow-hidden px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 border transition-all duration-300 ${
+                      className={`group relative overflow-hidden px-3 sm:px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all duration-300 w-full sm:w-auto ${
                         canEditResume
                           ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-lg'
                           : 'bg-gray-100 text-ink-500 border-gray-200'
@@ -1324,7 +1324,7 @@ export default function AnalyzeResume() {
                     <button
                       type="button"
                       onClick={() => setIsEditMode(false)}
-                      className="group relative overflow-hidden px-4 py-2 bg-gray-100 text-ink-700 rounded-xl font-medium hover:bg-gray-200 text-sm flex items-center gap-2 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+                      className="group relative overflow-hidden px-3 sm:px-4 py-2 bg-gray-100 text-ink-700 rounded-xl font-medium hover:bg-gray-200 text-xs sm:text-sm flex items-center justify-center gap-2 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md w-full sm:w-auto"
                     >
                       <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                       <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1344,7 +1344,7 @@ export default function AnalyzeResume() {
                     type="button"
                     onClick={handleMatchResume}
                     disabled={isMatching || !resume.job_description || !resume.job_title}
-                    className="group relative overflow-hidden px-4 py-2 bg-white text-ink-900 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm border border-gray-200 hover:-translate-y-0.5 hover:shadow-md"
+                    className="group relative overflow-hidden px-3 sm:px-4 py-2 bg-white text-ink-900 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs sm:text-sm border border-gray-200 hover:-translate-y-0.5 hover:shadow-md w-full sm:w-auto"
                     title={!resume.job_description || !resume.job_title ? 'Job title and description are required' : ''}
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
@@ -1358,7 +1358,7 @@ export default function AnalyzeResume() {
                     type="button"
                     onClick={handleDownload}
                     disabled={isDownloading}
-                    className="group relative overflow-hidden px-4 py-2 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-all duration-300 disabled:opacity-50 flex items-center gap-2 text-sm hover:-translate-y-0.5 hover:shadow-lg"
+                    className="group relative overflow-hidden px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 text-xs sm:text-sm hover:-translate-y-0.5 hover:shadow-lg w-full sm:w-auto"
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                     <svg className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1374,7 +1374,7 @@ export default function AnalyzeResume() {
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {resumeUrl ? (
                   <div className="relative">
                     <style>{resumeRenderStyles}</style>
@@ -1405,7 +1405,7 @@ export default function AnalyzeResume() {
 
                     {isEditMode ? (
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
                           <div className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path
@@ -1417,11 +1417,11 @@ export default function AnalyzeResume() {
                             </svg>
                             <span className="text-sm font-semibold text-amber-900">Edit mode (formatting preserved)</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
                             <button
                               type="button"
                               onClick={() => setIsEditMode(false)}
-                              className="px-4 py-2 bg-gray-200 text-ink-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 text-sm"
+                              className="px-4 py-2 bg-gray-200 text-ink-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 text-sm w-full sm:w-auto"
                             >
                               Cancel
                             </button>
@@ -1429,7 +1429,7 @@ export default function AnalyzeResume() {
                               type="button"
                               onClick={handleSaveChanges}
                               disabled={saving || isReanalyzing}
-                              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all duration-200 disabled:opacity-50 text-sm flex items-center gap-2"
+                              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all duration-200 disabled:opacity-50 text-sm flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
                               {isReanalyzing ? (
                                 <>
@@ -1462,7 +1462,7 @@ export default function AnalyzeResume() {
                           ref={editorRef}
                           contentEditable
                           suppressContentEditableWarning
-                          className="w-full h-[90vh] min-h-[860px] overflow-y-auto p-8 border-2 border-amber-200 rounded-2xl shadow-inner focus:border-amber-400 focus:ring-2 focus:ring-amber-200 focus:outline-none bg-white custom-scrollbar"
+                          className="w-full h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[420px] sm:min-h-[640px] lg:min-h-[860px] overflow-y-auto p-4 sm:p-8 border-2 border-amber-200 rounded-2xl shadow-inner focus:border-amber-400 focus:ring-2 focus:ring-amber-200 focus:outline-none bg-white custom-scrollbar"
                           style={{
                             fontFamily: 'Calibri, Arial, sans-serif',
                             fontSize: '11pt',
@@ -1505,21 +1505,21 @@ export default function AnalyzeResume() {
                               </button>
                             </div>
 
-                            <div className="w-full h-[90vh] min-h-[860px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
-                              <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm my-6 p-6 sm:p-12">
+                            <div className="w-full h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[420px] sm:min-h-[640px] lg:min-h-[860px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
+                              <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm my-3 sm:my-6 p-4 sm:p-8 lg:p-12">
                                 <div className="resume-content" dangerouslySetInnerHTML={{ __html: resumeHtml }} />
                               </div>
                             </div>
                           </div>
                         ) : isWordDocument ? (
                           resumeHtml ? (
-                            <div className="w-full h-[90vh] min-h-[860px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
-                              <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm my-6 p-6 sm:p-12">
+                            <div className="w-full h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[420px] sm:min-h-[640px] lg:min-h-[860px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-2xl custom-scrollbar">
+                              <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-xl shadow-sm my-3 sm:my-6 p-4 sm:p-8 lg:p-12">
                                 <div className="resume-content" dangerouslySetInnerHTML={{ __html: resumeHtml }} />
                               </div>
                             </div>
                           ) : (
-                            <div className="w-full h-[90vh] min-h-[860px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
+                            <div className="w-full h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[420px] sm:min-h-[640px] lg:min-h-[860px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
                               <div className="text-center space-y-4">
                                 <svg className="mx-auto h-12 w-12 text-ink-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1531,7 +1531,7 @@ export default function AnalyzeResume() {
                         ) : (
                           <iframe
                             src={resumeUrl}
-                            className="w-full h-[90vh] min-h-[860px] bg-white border border-gray-200 rounded-2xl shadow-sm"
+                            className="w-full h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[420px] sm:min-h-[640px] lg:min-h-[860px] bg-white border border-gray-200 rounded-2xl shadow-sm"
                             title="Resume Viewer"
                           />
                         )}
@@ -1567,7 +1567,7 @@ export default function AnalyzeResume() {
                     )}
                   </div>
                 ) : (
-                  <div className="w-full h-[90vh] min-h-[860px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
+                  <div className="w-full h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[420px] sm:min-h-[640px] lg:min-h-[860px] border-2 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                       <svg className="mx-auto h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
