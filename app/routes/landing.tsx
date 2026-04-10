@@ -42,7 +42,7 @@ export default function LandingPage() {
         animation: "gradient-shift 20s ease infinite",
         fontFamily: '"Mona Sans", ui-sans-serif, system-ui, sans-serif',
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
       }}
     >
       {/* Animated background orbs */}
@@ -51,8 +51,8 @@ export default function LandingPage() {
           position: "fixed",
           top: "-15%",
           right: "-10%",
-          width: "600px",
-          height: "600px",
+          width: "min(80vw, 600px)",
+          height: "min(80vw, 600px)",
           background: "radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%)",
           borderRadius: "50%",
           filter: "blur(60px)",
@@ -65,8 +65,8 @@ export default function LandingPage() {
           position: "fixed",
           bottom: "-20%",
           left: "-15%",
-          width: "700px",
-          height: "700px",
+          width: "min(90vw, 700px)",
+          height: "min(90vw, 700px)",
           background: "radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)",
           borderRadius: "50%",
           filter: "blur(70px)",
@@ -79,8 +79,8 @@ export default function LandingPage() {
           position: "fixed",
           top: "30%",
           left: "60%",
-          width: "400px",
-          height: "400px",
+          width: "min(56vw, 400px)",
+          height: "min(56vw, 400px)",
           background: "radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%)",
           borderRadius: "50%",
           filter: "blur(50px)",
@@ -549,7 +549,7 @@ export default function LandingPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
             gap: "24px",
           }}
         >
@@ -720,7 +720,7 @@ export default function LandingPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
               gap: "32px",
               position: "relative",
             }}
@@ -1057,7 +1057,7 @@ export default function LandingPage() {
             style={{
               backgroundColor: "#111827",
               borderRadius: "24px",
-              padding: "40px",
+              padding: "clamp(24px, 4vw, 40px)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               border: "2px solid #111827",
               position: "relative",
@@ -1195,7 +1195,7 @@ export default function LandingPage() {
           style={{
             maxWidth: "700px",
             margin: "48px auto 0",
-            padding: "24px 32px",
+            padding: "clamp(16px, 3vw, 24px) clamp(16px, 4vw, 32px)",
             backgroundColor: "rgba(255, 255, 255, 0.9)",
             borderRadius: "16px",
             border: "1px solid #e5e7eb",
@@ -1265,7 +1265,7 @@ export default function LandingPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
             gap: "24px",
           }}
         >
@@ -1360,7 +1360,7 @@ export default function LandingPage() {
             backgroundColor: "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(20px)",
             borderRadius: "24px",
-            padding: "64px 48px",
+            padding: "clamp(28px, 6vw, 64px) clamp(20px, 6vw, 48px)",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
             border: "1px solid rgba(229, 231, 235, 0.5)",
           }}

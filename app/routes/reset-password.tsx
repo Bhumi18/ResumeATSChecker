@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
           style={{
             backgroundColor: "#fff",
             borderRadius: "16px",
-            padding: "40px 32px",
+            padding: "clamp(24px, 4vw, 40px) clamp(20px, 4vw, 32px)",
             boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
           }}
         >

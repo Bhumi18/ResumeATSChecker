@@ -134,7 +134,7 @@ body {
     transform: translateX(0);
   }
   .auth-button {
-    @apply bg-gray-900 rounded-lg py-4 px-8 cursor-pointer w-[600px] max-md:w-full text-3xl font-semibold text-white hover:bg-gray-800;
+    @apply bg-gray-900 rounded-lg py-4 px-8 max-md:px-6 cursor-pointer w-[600px] max-md:w-full text-3xl max-md:text-xl font-semibold text-white hover:bg-gray-800;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -162,7 +162,7 @@ body {
     transform: translateY(-1px) scale(0.99);
   }
   .main-section {
-    @apply flex flex-col items-center gap-8 pt-12 mx-15 pb-5;
+    @apply flex flex-col items-center gap-8 pt-12 mx-4 md:mx-10 lg:mx-15 pb-5;
   }
   .page-heading {
     @apply flex flex-col items-center gap-8 max-w-4xl text-center;
@@ -191,7 +191,7 @@ body {
   }
 
   .navbar {
-    @apply flex flex-row justify-between items-center bg-white rounded-none p-4 w-full px-10 max-w-[1200px] mx-auto;
+    @apply flex flex-row justify-between items-center bg-white rounded-none p-4 w-full px-4 sm:px-6 md:px-10 max-w-[1200px] mx-auto;
     transition: all 0.3s ease;
   }
 

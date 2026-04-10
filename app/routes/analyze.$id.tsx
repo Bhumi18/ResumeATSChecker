@@ -833,9 +833,9 @@ export default function AnalyzeResume() {
     <ProtectedRoute>
       <main className="min-h-screen bg-gray-50 relative overflow-hidden">
         {/* Animated background elements */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-br from-green-100 to-blue-100 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full filter blur-3xl opacity-15 animate-pulse" style={{ animationDuration: '10s' }} />
+        <div className="absolute top-0 right-0 w-56 h-56 sm:w-80 sm:h-80 lg:w-[500px] lg:h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute bottom-0 left-0 w-52 h-52 sm:w-72 sm:h-72 lg:w-[400px] lg:h-[400px] bg-gradient-to-br from-green-100 to-blue-100 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-1/2 left-1/2 w-40 h-40 sm:w-56 sm:h-56 lg:w-[300px] lg:h-[300px] bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full filter blur-3xl opacity-15 animate-pulse" style={{ animationDuration: '10s' }} />
 
         <div
           aria-hidden

@@ -99,8 +99,8 @@ export default function Upload() {
     <ProtectedRoute>
       <main className="min-h-screen bg-gray-50 relative overflow-hidden">
         {/* Animated background elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDuration: '5s' }} />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-green-100 to-blue-100 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDuration: '7s' }} />
+        <div className="absolute top-0 right-0 w-56 h-56 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDuration: '5s' }} />
+        <div className="absolute bottom-0 left-0 w-52 h-52 sm:w-72 sm:h-72 lg:w-80 lg:h-80 bg-gradient-to-br from-green-100 to-blue-100 rounded-full filter blur-3xl opacity-30 animate-pulse" style={{ animationDuration: '7s' }} />
 
         <Navbar />
         <section className="main-section py-8 relative z-10">

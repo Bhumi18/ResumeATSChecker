@@ -118,7 +118,7 @@ export default function SignUpPage() {
         padding: "20px",
         fontFamily: '"Mona Sans", ui-sans-serif, system-ui, sans-serif',
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
       }}
     >
       {/* Animated background orbs */}
@@ -127,8 +127,8 @@ export default function SignUpPage() {
           position: "absolute",
           top: "-15%",
           left: "-10%",
-          width: "450px",
-          height: "450px",
+          width: "min(78vw, 450px)",
+          height: "min(78vw, 450px)",
           background: "radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)",
           borderRadius: "50%",
           filter: "blur(50px)",
@@ -140,8 +140,8 @@ export default function SignUpPage() {
           position: "absolute",
           bottom: "-20%",
           right: "-10%",
-          width: "500px",
-          height: "500px",
+          width: "min(84vw, 500px)",
+          height: "min(84vw, 500px)",
           background: "radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%)",
           borderRadius: "50%",
           filter: "blur(60px)",
@@ -153,8 +153,8 @@ export default function SignUpPage() {
           position: "absolute",
           top: "50%",
           right: "20%",
-          width: "250px",
-          height: "250px",
+          width: "min(52vw, 250px)",
+          height: "min(52vw, 250px)",
           background: "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)",
           borderRadius: "50%",
           filter: "blur(40px)",
@@ -194,7 +194,7 @@ export default function SignUpPage() {
             backgroundColor: "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(20px)",
             borderRadius: "20px",
-            padding: "40px 32px",
+            padding: "clamp(24px, 4vw, 40px) clamp(20px, 4vw, 32px)",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
             transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
             animationDelay: "0.1s",
@@ -257,7 +257,7 @@ export default function SignUpPage() {
             style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "stretch" }}
           >
             {/* Name row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label htmlFor="signup-first" style={labelStyle}>
                   First name
