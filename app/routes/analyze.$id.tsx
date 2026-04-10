@@ -1047,7 +1047,7 @@ export default function AnalyzeResume() {
 
                 {/* Category Pills */}
                 <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-gray-200 bg-gray-50">
-                  <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-2 overflow-x-auto scrollbar-hide px-0.5 pb-1">
                     {tabs.map((tab) => {
                       const isActive = activeTab === tab.id;
 
@@ -1056,7 +1056,7 @@ export default function AnalyzeResume() {
                           type="button"
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`px-4 py-2 rounded-xl border text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition-all duration-300 relative overflow-hidden group ${
+                          className={`px-3 sm:px-4 py-2 rounded-xl border text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-1.5 sm:gap-2 transition-all duration-300 relative overflow-hidden group shrink-0 min-w-max ${
                             isActive
                               ? 'bg-gray-900 border-gray-900 text-white shadow-lg'
                               : 'bg-white border-gray-200 text-ink-700 hover:bg-gray-100 hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-md'
@@ -1066,8 +1066,10 @@ export default function AnalyzeResume() {
                           {!isActive && (
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                           )}
-                          <span className="relative z-10">{tab.label}</span>
-                          <span className={`text-xs font-bold relative z-10 transition-transform duration-200 ${isActive ? 'text-white' : getScoreColor(tab.score)} group-hover:scale-110`}>{tab.score}</span>
+                          <span className="relative z-10 leading-none">{tab.label}</span>
+                          <span className={`relative z-10 transition-transform duration-200 group-hover:scale-110 inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full text-[10px] sm:text-xs font-bold ${isActive ? 'bg-white/20 text-white' : `${getScoreColor(tab.score)} bg-gray-100`}`}>
+                            {tab.score}
+                          </span>
                         </button>
                       );
                     })}
