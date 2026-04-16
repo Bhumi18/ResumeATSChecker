@@ -1,5 +1,6 @@
 import type { Route } from "./+types/about";
 import { Link } from "react-router";
+import BrandLogo from "../components/BrandLogo";
 
 const stats = [
   { label: "Resumes analyzed", value: "12k+" },
@@ -67,7 +68,7 @@ export default function AboutPage() {
       <nav className="about-nav">
         <div className="about-nav-inner">
           <Link to="/" className="about-logo-link">
-            <span className="about-logo">ATSEngine</span>
+            <BrandLogo size="sm" className="about-logo" />
           </Link>
           <Link to="/" className="about-nav-back">
             Back to Home

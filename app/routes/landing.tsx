@@ -2,6 +2,7 @@ import type { Route } from "./+types/landing";
 import { useAuth } from "../lib/auth-context";
 import { Navigate, Link } from "react-router";
 import { useState, useEffect } from "react";
+import BrandLogo from "../components/BrandLogo";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -106,11 +107,7 @@ export default function LandingPage() {
         >
           {/* Logo */}
           <Link to="/" style={{ textDecoration: "none" }} className="group">
-            <div
-              className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight transition-all group-hover:scale-105"
-            >
-              ATSEngine
-            </div>
+            <BrandLogo size="md" className="transition-transform duration-300 group-hover:scale-105" />
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -1466,20 +1463,7 @@ export default function LandingPage() {
           >
             {/* Left - Brand Section */}
             <div style={{ maxWidth: "400px" }}>
-              <div
-                style={{
-                  fontSize: "32px",
-                  fontWeight: 700,
-                  letterSpacing: "-1px",
-                  marginBottom: "16px",
-                  background: "linear-gradient(135deg, #fff 0%, #9ca3af 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                ATSEngine
-              </div>
+              <BrandLogo size="lg" variant="light" style={{ marginBottom: "16px" }} />
               <p style={{ fontSize: "15px", color: "rgba(255, 255, 255, 0.6)", lineHeight: 1.7, marginBottom: "28px" }}>
                 Engineering your resume for ATS success. Our AI-powered platform helps job seekers optimize their resumes and land more interviews.
               </p>

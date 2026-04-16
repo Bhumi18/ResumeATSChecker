@@ -1506,10 +1506,8 @@ body {
 }
 
 .about-logo {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: #0f172a;
+  width: 130px;
+  height: auto;
 }
 
 .about-nav-back {
@@ -1896,10 +1894,8 @@ body {
 }
 
 .contact-logo {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: #0f172a;
+  width: 130px;
+  height: auto;
 }
 
 .contact-nav-back {

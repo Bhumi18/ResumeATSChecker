@@ -1,35 +1,19 @@
 import type { JSX } from "react";
 import { Link } from "react-router";
-import { useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import ProfileMenu from "./ProfileMenu";
+import BrandLogo from "./BrandLogo";
 
 const Navbar: () => JSX.Element = () => {
   const { isSignedIn } = useAuth();
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <nav className="navbar bg-white/95 border-b border-gray-200 sticky top-0 z-50 backdrop-blur-md transition-all duration-300">
       <Link
         to="/dashboard"
         className="group flex items-center gap-2 transition-all duration-300"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        <p
-          className="text-2xl font-bold text-ink-900 transition-all duration-300"
-          style={{
-            letterSpacing: isHovered ? '2px' : 'normal',
-            transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-          }}
-        >
-          ATS<span
-            className="transition-all duration-300"
-            style={{
-              color: '#111827',
-            }}
-          >Engine</span>
-        </p>
+        <BrandLogo size="md" className="transition-transform duration-300 group-hover:scale-105" />
       </Link>
       <div className="flex items-center gap-2 sm:gap-3">
         {isSignedIn && (

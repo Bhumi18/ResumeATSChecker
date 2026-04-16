@@ -2,6 +2,7 @@ import type { Route } from "./+types/reset-password";
 import { useAuth } from "../lib/auth-context";
 import { Navigate, useNavigate, Link, useSearchParams } from "react-router";
 import { useState, type FormEvent } from "react";
+import BrandLogo from "../components/BrandLogo";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -139,16 +140,7 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <Link to="/" style={{ textDecoration: "none" }}>
-            <div
-              style={{
-                fontSize: "36px",
-                fontWeight: 700,
-                color: "#111827",
-                letterSpacing: "-1px",
-              }}
-            >
-              ATSEngine
-            </div>
+            <BrandLogo size="lg" style={{ margin: "0 auto" }} />
           </Link>
           <p style={{ color: "#6b7280", fontSize: "16px", marginTop: "8px" }}>
             Engineering Your Resume for ATS Success

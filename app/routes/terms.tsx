@@ -1,5 +1,6 @@
 import type { Route } from "./+types/terms";
 import { Link } from "react-router";
+import BrandLogo from "../components/BrandLogo";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -145,7 +146,7 @@ export default function TermsPage() {
           }}
         >
           <Link to="/" style={{ textDecoration: "none" }}>
-            <span style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>ATSEngine</span>
+            <BrandLogo size="sm" />
           </Link>
           <Link
             to="/"

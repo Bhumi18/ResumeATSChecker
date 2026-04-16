@@ -2,6 +2,7 @@ import type { Route } from "./+types/sign-in";
 import { useAuth } from "../lib/auth-context";
 import { Navigate, useNavigate, Link } from "react-router";
 import { useState, type FormEvent } from "react";
+import BrandLogo from "../components/BrandLogo";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -128,18 +129,7 @@ export default function SignInPage() {
           className="animate-in fade-in slide-in-from-bottom-4 duration-700"
         >
           <Link to="/" style={{ textDecoration: "none" }} className="group inline-block">
-            <div
-              style={{
-                fontSize: "36px",
-                fontWeight: 700,
-                color: "#111827",
-                letterSpacing: "-1px",
-                transition: "all 0.3s ease",
-              }}
-              className="hover:scale-105 hover:tracking-wider"
-            >
-              ATSEngine
-            </div>
+            <BrandLogo size="lg" className="transition-transform duration-300 hover:scale-105" />
           </Link>
           <p style={{ color: "#6b7280", fontSize: "16px", marginTop: "8px" }} className="hover:text-gray-700 transition-colors duration-300">
             Engineering Your Resume for ATS Success

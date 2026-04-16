@@ -1,6 +1,7 @@
 import type { Route } from "./+types/contact";
 import { Link } from "react-router";
 import { useState, type FormEvent } from "react";
+import BrandLogo from "../components/BrandLogo";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -36,7 +37,7 @@ export default function ContactPage() {
       <nav className="contact-nav">
         <div className="contact-nav-inner">
           <Link to="/" className="contact-logo-link">
-            <span className="contact-logo">ATSEngine</span>
+            <BrandLogo size="sm" className="contact-logo" />
           </Link>
           <Link to="/" className="contact-nav-back">
             Back to Home
