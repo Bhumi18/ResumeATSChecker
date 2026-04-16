@@ -131,6 +131,24 @@ export async function deleteResume(resumeId: string): Promise<boolean> {
 }
 
 /**
+ * Delete a resume owned by a specific user
+ */
+export async function deleteResumeForUser(
+  resumeId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    return await execute(
+      `DELETE FROM resumes WHERE id = $1 AND user_id = $2`,
+      [resumeId, userId]
+    );
+  } catch (error) {
+    console.error('Error in deleteResumeForUser:', error);
+    return false;
+  }
+}
+
+/**
  * Save resume analysis results
  */
 export async function saveResumeAnalysis(

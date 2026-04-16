@@ -28,6 +28,8 @@ export default function Home() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'analyzing' | 'pending'>('all');
+  const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null);
+  const [pendingDeleteResume, setPendingDeleteResume] = useState<{ id: string; name: string } | null>(null);
 
   // Calculate stats
   const stats = {
@@ -85,6 +87,38 @@ export default function Home() {
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleDeleteResume = async (resumeId: string) => {
+    if (!user || deletingResumeId) return;
+
+    try {
+      setDeletingResumeId(resumeId);
+
+      const response = await fetch('/api/resumes', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeId,
+          userId: user.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.error || 'Failed to delete application');
+      }
+
+      setResumes((prev) => prev.filter(({ resume }) => resume.id !== resumeId));
+      setPendingDeleteResume(null);
+    } catch (err) {
+      console.error('Error deleting resume:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete application');
+    } finally {
+      setDeletingResumeId(null);
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -315,28 +349,49 @@ export default function Home() {
                         resumePath: resume.resume_file_url,
                         feedback: {
                           overallScore: resume.overall_score || 0,
-                          ATS: { 
-                            score: analysis?.ats_score || 0, 
+                          ATS: {
+                            score: analysis?.ats_score || 0,
                             tips: Array.isArray(analysis?.ats_tips) ? analysis.ats_tips as any : []
                           },
-                          toneAndStyle: { 
-                            score: analysis?.tone_style_score || 0, 
+                          toneAndStyle: {
+                            score: analysis?.tone_style_score || 0,
                             tips: Array.isArray(analysis?.tone_style_tips) ? analysis.tone_style_tips as any : []
                           },
-                          content: { 
-                            score: analysis?.content_score || 0, 
+                          content: {
+                            score: analysis?.content_score || 0,
                             tips: Array.isArray(analysis?.content_tips) ? analysis.content_tips as any : []
                           },
-                          structure: { 
-                            score: analysis?.structure_score || 0, 
+                          structure: {
+                            score: analysis?.structure_score || 0,
                             tips: Array.isArray(analysis?.structure_tips) ? analysis.structure_tips as any : []
                           },
-                          skills: { 
-                            score: analysis?.skills_score || 0, 
+                          skills: {
+                            score: analysis?.skills_score || 0,
                             tips: Array.isArray(analysis?.skills_tips) ? analysis.skills_tips as any : []
                           },
                         },
-                      }} 
+                      }}
+                      footerActions={
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPendingDeleteResume({
+                              id: resume.id,
+                              name: resume.company_name || resume.job_title || 'this application',
+                            })
+                          }
+                          disabled={deletingResumeId === resume.id}
+                          className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-600 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
+                          aria-label={`Delete ${resume.company_name || 'application'}`}
+                        >
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors duration-200 group-hover:bg-red-100 group-hover:text-red-600">
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
+                            </svg>
+                          </span>
+                          {deletingResumeId === resume.id ? 'Deleting...' : 'Delete Application'}
+                        </button>
+                      }
                     />
                   ))}
                 </div>
@@ -448,6 +503,59 @@ export default function Home() {
                 >
                   Upload Your First Resume
                 </a>
+              </div>
+            </div>
+          )}
+
+          {pendingDeleteResume && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]"
+                onClick={() => (deletingResumeId ? null : setPendingDeleteResume(null))}
+                aria-hidden
+              />
+              <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-r from-red-50 via-white to-red-50 p-6 pb-4">
+                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">Delete application?</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    This will permanently remove <span className="font-semibold text-slate-800">{pendingDeleteResume.name}</span> and its analysis.
+                    This action cannot be undone.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 p-6 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setPendingDeleteResume(null)}
+                    disabled={Boolean(deletingResumeId)}
+                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteResume(pendingDeleteResume.id)}
+                    disabled={Boolean(deletingResumeId)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {deletingResumeId ? (
+                      <>
+                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                          <path d="M22 12a10 10 0 00-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-90" />
+                        </svg>
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete application'
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}

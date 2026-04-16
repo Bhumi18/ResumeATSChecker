@@ -5,6 +5,7 @@ export {
   getResumeWithAnalysis,
   updateResumeStatus,
   deleteResume,
+  deleteResumeForUser,
   saveResumeAnalysis,
 } from './resumes.server';
 export {
