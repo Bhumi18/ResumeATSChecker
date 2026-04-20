@@ -149,6 +149,43 @@ export async function deleteResumeForUser(
 }
 
 /**
+ * Update resume job details for a specific user
+ */
+export async function updateResumeDetailsForUser(
+  resumeId: string,
+  userId: string,
+  details: {
+    companyName?: string;
+    jobTitle: string;
+    jobDescription: string;
+  }
+): Promise<Resume | null> {
+  try {
+    const result = await query<Resume>(
+      `UPDATE resumes
+       SET company_name = $1,
+           job_title = $2,
+           job_description = $3,
+           updated_at = NOW()
+       WHERE id = $4 AND user_id = $5
+       RETURNING *`,
+      [
+        details.companyName?.trim() || null,
+        details.jobTitle.trim(),
+        details.jobDescription.trim(),
+        resumeId,
+        userId,
+      ]
+    );
+
+    return result[0] || null;
+  } catch (error) {
+    console.error('Error in updateResumeDetailsForUser:', error);
+    return null;
+  }
+}
+
+/**
  * Save resume analysis results
  */
 export async function saveResumeAnalysis(

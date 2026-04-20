@@ -6,6 +6,7 @@ export {
   updateResumeStatus,
   deleteResume,
   deleteResumeForUser,
+  updateResumeDetailsForUser,
   saveResumeAnalysis,
 } from './resumes.server';
 export {

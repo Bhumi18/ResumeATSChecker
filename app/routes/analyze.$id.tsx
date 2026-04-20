@@ -46,6 +46,14 @@ export default function AnalyzeResume() {
   const [isSavingToSystem, setIsSavingToSystem] = useState(false);
   const [savedToSystem, setSavedToSystem] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
+  const [isEditingJobDetails, setIsEditingJobDetails] = useState(false);
+  const [isUpdatingJobDetails, setIsUpdatingJobDetails] = useState(false);
+  const [jobDetailsError, setJobDetailsError] = useState<string>("");
+  const [jobDetailsForm, setJobDetailsForm] = useState({
+    companyName: '',
+    jobTitle: '',
+    jobDescription: '',
+  });
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [completedSuggestions, setCompletedSuggestions] = useState<Set<string>>(new Set());
   const [previousScore, setPreviousScore] = useState<number | null>(null);
@@ -415,10 +423,24 @@ export default function AnalyzeResume() {
     }
   };
 
-  const handleMatchResume = async () => {
-    if (!resume || !resumeUrl) return;
+  const handleMatchResume = async (overrideDetails?: {
+    companyName?: string;
+    jobTitle: string;
+    jobDescription: string;
+  }) => {
+    if (!resume) {
+      pushBanner({
+        kind: 'error',
+        title: 'Resume unavailable',
+        message: 'Could not find this resume record to re-analyze.',
+      });
+      return;
+    }
+
+    const effectiveJobTitle = overrideDetails?.jobTitle ?? resume.job_title ?? '';
+    const effectiveJobDescription = overrideDetails?.jobDescription ?? resume.job_description ?? '';
     
-    if (!resume.job_description || !resume.job_title) {
+    if (!effectiveJobDescription || !effectiveJobTitle) {
       pushBanner({
         kind: 'warning',
         title: 'Add job details first',
@@ -440,7 +462,13 @@ export default function AnalyzeResume() {
       }
 
       if (!currentResumeText.trim()) {
-        const response = await fetch(resumeUrl);
+        const sourceUrl = resumeUrl || resume.resume_file_url || '';
+
+        if (!sourceUrl) {
+          throw new Error('Resume file URL is missing. Please refresh and try again.');
+        }
+
+        const response = await fetch(sourceUrl);
         const blob = await response.blob();
         const mammoth = await import('mammoth');
         const arrayBuffer = await blob.arrayBuffer();
@@ -463,8 +491,8 @@ export default function AnalyzeResume() {
         body: JSON.stringify({
           resumeId: id,
           resumeText: currentResumeText,
-          jobDescription: resume.job_description || '',
-          jobTitle: resume.job_title || '',
+          jobDescription: effectiveJobDescription,
+          jobTitle: effectiveJobTitle,
           reanalyze: true,
         }),
       });
@@ -511,6 +539,90 @@ export default function AnalyzeResume() {
       });
     } finally {
       setIsMatching(false);
+    }
+  };
+
+  const openJobDetailsEditor = () => {
+    if (!resume) return;
+
+    setJobDetailsError('');
+    setJobDetailsForm({
+      companyName: resume.company_name || '',
+      jobTitle: resume.job_title || '',
+      jobDescription: resume.job_description || '',
+    });
+    setIsEditingJobDetails(true);
+  };
+
+  const handleSaveJobDetailsAndReanalyze = async () => {
+    if (!id) return;
+
+    setJobDetailsError('');
+
+    const payload = {
+      companyName: jobDetailsForm.companyName.trim(),
+      jobTitle: jobDetailsForm.jobTitle.trim(),
+      jobDescription: jobDetailsForm.jobDescription.trim(),
+    };
+
+    if (!payload.jobTitle || !payload.jobDescription) {
+      setJobDetailsError('Position name and job description are required.');
+      pushBanner({
+        kind: 'warning',
+        title: 'Missing required fields',
+        message: 'Job title and job description are required.',
+      });
+      return;
+    }
+
+    try {
+      setIsUpdatingJobDetails(true);
+
+      const response = await fetch('/api/resume-details', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          resumeId: id,
+          companyName: payload.companyName,
+          jobTitle: payload.jobTitle,
+          jobDescription: payload.jobDescription,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update job details');
+      }
+
+      setResume(result.resume);
+      setIsEditingJobDetails(false);
+
+      pushBanner(
+        {
+          kind: 'info',
+          title: 'Details updated',
+          message: 'Re-analyzing your resume with the updated job details...',
+        },
+        { autoDismissMs: 4000 }
+      );
+
+      await handleMatchResume({
+        companyName: payload.companyName,
+        jobTitle: payload.jobTitle,
+        jobDescription: payload.jobDescription,
+      });
+    } catch (err) {
+      console.error('Error updating job details:', err);
+      setJobDetailsError(err instanceof Error ? err.message : 'Could not update job details.');
+      pushBanner({
+        kind: 'error',
+        title: 'Update failed',
+        message: err instanceof Error ? err.message : 'Could not update job details.',
+      });
+    } finally {
+      setIsUpdatingJobDetails(false);
     }
   };
 
@@ -1344,7 +1456,19 @@ export default function AnalyzeResume() {
 
                   <button
                     type="button"
-                    onClick={handleMatchResume}
+                    onClick={openJobDetailsEditor}
+                    className="group relative overflow-hidden px-3 sm:px-4 py-2 bg-white text-ink-900 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm border border-gray-200 hover:-translate-y-0.5 hover:shadow-md w-full sm:w-auto"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <svg className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span className="relative z-10">Edit job details</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => void handleMatchResume()}
                     disabled={isMatching || !resume.job_description || !resume.job_title}
                     className="group relative overflow-hidden px-3 sm:px-4 py-2 bg-white text-ink-900 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs sm:text-sm border border-gray-200 hover:-translate-y-0.5 hover:shadow-md w-full sm:w-auto"
                     title={!resume.job_description || !resume.job_title ? 'Job title and description are required' : ''}
@@ -1579,6 +1703,108 @@ export default function AnalyzeResume() {
                   </div>
                 )}
               </div>
+
+              {isEditingJobDetails && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+                  <div
+                    className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]"
+                    onClick={() => (isUpdatingJobDetails ? null : setIsEditingJobDetails(false))}
+                    aria-hidden
+                  />
+
+                  <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                    <div className="border-b border-slate-200 px-6 py-5">
+                      <h3 className="text-xl font-bold text-slate-900">Edit job details</h3>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Update company, position, or job description. We will re-analyze this same resume after saving.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 px-6 py-5">
+                      {jobDetailsError && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                          {jobDetailsError}
+                        </div>
+                      )}
+
+                      <div>
+                        <label htmlFor="job-company" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                          Company name
+                        </label>
+                        <input
+                          id="job-company"
+                          type="text"
+                          value={jobDetailsForm.companyName}
+                          onChange={(e) => setJobDetailsForm((prev) => ({ ...prev, companyName: e.target.value }))}
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                          placeholder="Acme Inc"
+                          disabled={isUpdatingJobDetails}
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="job-title" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                          Position name
+                        </label>
+                        <input
+                          id="job-title"
+                          type="text"
+                          value={jobDetailsForm.jobTitle}
+                          onChange={(e) => setJobDetailsForm((prev) => ({ ...prev, jobTitle: e.target.value }))}
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                          placeholder="Senior Frontend Engineer"
+                          disabled={isUpdatingJobDetails}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="job-description" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                          Job description
+                        </label>
+                        <textarea
+                          id="job-description"
+                          value={jobDetailsForm.jobDescription}
+                          onChange={(e) => setJobDetailsForm((prev) => ({ ...prev, jobDescription: e.target.value }))}
+                          className="min-h-[180px] w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                          placeholder="Paste the full job description here"
+                          disabled={isUpdatingJobDetails}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingJobDetails(false)}
+                        disabled={isUpdatingJobDetails}
+                        className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleSaveJobDetailsAndReanalyze()}
+                        disabled={isUpdatingJobDetails}
+                        className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        {isUpdatingJobDetails ? (
+                          <>
+                            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                              <path d="M22 12a10 10 0 00-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-90" />
+                            </svg>
+                            Saving & matching...
+                          </>
+                        ) : (
+                          'Save and re-analyze'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </section>
           </div>
         </div>
