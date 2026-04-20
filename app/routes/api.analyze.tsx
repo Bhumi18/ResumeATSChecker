@@ -37,7 +37,7 @@ export async function loader({ request }: { request: Request }) {
 export async function action({ request }: { request: Request }) {
   try {
     const body = await request.json();
-    const { resumeId, resumeText, jobDescription, jobTitle, reanalyze } = body;
+    const { resumeId, resumeText, jobDescription, jobTitle } = body;
 
     console.log('🔄 API action called for re-analysis');
     console.log('📝 Resume ID:', resumeId);
@@ -48,18 +48,41 @@ export async function action({ request }: { request: Request }) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const cleanedResumeText = String(resumeText).trim();
+    if (cleanedResumeText.length < 100) {
+      return Response.json(
+        {
+          error: 'Resume content is too short after editing. Please include more content before re-analyzing.',
+        },
+        { status: 400 }
+      );
+    }
+
     console.log('🔄 Starting resume analysis...');
 
     // Analyze the edited resume text
     let analysis;
     try {
       analysis = await analyzeResumeText(
-        resumeText,
+        cleanedResumeText,
         jobTitle || '',
         jobDescription || ''
       );
     } catch (analysisError: any) {
       console.error('❌ Analysis failed:', analysisError);
+
+      // Graceful fallback: return last saved analysis rather than failing with 500.
+      const previousData = await getResumeWithAnalysis(resumeId);
+      if (previousData.analysis && previousData.resume) {
+        return Response.json({
+          success: true,
+          analysis: previousData.analysis,
+          resume: previousData.resume,
+          message: 'AI analysis is temporarily unavailable. Showing your last saved analysis.',
+          fallback: true,
+        });
+      }
+
       throw new Error(`Analysis failed: ${analysisError.message}`);
     }
 

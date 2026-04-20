@@ -41,6 +41,269 @@ const GEMINI_MODELS = {
   EMBEDDING: 'text-embedding-004',
 } as const;
 
+type SectionDefinition = {
+  key: string;
+  label: string;
+  aliases: string[];
+};
+
+const SECTION_DEFINITIONS: SectionDefinition[] = [
+  {
+    key: 'summary',
+    label: 'Professional Summary',
+    aliases: [
+      'professional summary',
+      'summary',
+      'profile',
+      'career objective',
+      'objective',
+      'professional profile',
+    ],
+  },
+  {
+    key: 'skills',
+    label: 'Technical Skills',
+    aliases: [
+      'technical skills',
+      'skills',
+      'core competencies',
+      'competencies',
+      'technology stack',
+      'tech stack',
+      'tools and technologies',
+      'tools & technologies',
+    ],
+  },
+  {
+    key: 'experience',
+    label: 'Professional Experience',
+    aliases: [
+      'professional experience',
+      'work experience',
+      'employment history',
+      'experience',
+      'career history',
+    ],
+  },
+  {
+    key: 'projects',
+    label: 'Projects',
+    aliases: [
+      'projects',
+      'project experience',
+      'personal projects',
+      'academic projects',
+      'key projects',
+      'selected projects',
+    ],
+  },
+  {
+    key: 'education',
+    label: 'Education',
+    aliases: [
+      'education',
+      'academic background',
+      'academic qualifications',
+      'qualifications',
+    ],
+  },
+  {
+    key: 'certifications',
+    label: 'Certifications',
+    aliases: [
+      'certification',
+      'certifications',
+      'licenses',
+      'licences',
+      'professional certifications',
+      'certificates',
+    ],
+  },
+];
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function normalizeText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseSectionKey(value: string): string | null {
+  const normalized = normalizeText(value);
+  if (!normalized) return null;
+
+  const directMatch = SECTION_DEFINITIONS.find(
+    (section) =>
+      normalizeText(section.label) === normalized ||
+      section.aliases.some((alias) => normalizeText(alias) === normalized)
+  );
+
+  if (directMatch) return directMatch.key;
+
+  const includesMatch = SECTION_DEFINITIONS.find((section) =>
+    section.aliases.some((alias) => {
+      const aliasNormalized = normalizeText(alias);
+      return normalized.includes(aliasNormalized) || aliasNormalized.includes(normalized);
+    })
+  );
+
+  return includesMatch?.key ?? null;
+}
+
+function hasSectionHeadingEvidence(text: string, alias: string): boolean {
+  const escapedAlias = escapeRegex(alias).replace(/\s+/g, '\\s+');
+
+  // Strong heading signals: line-heading format, explicit section label with punctuation,
+  // or standalone uppercase heading (common in resumes).
+  const lineHeading = new RegExp(`(?:^|[\\r\\n])\\s*${escapedAlias}\\s*(?:[:\\-|]|$)`, 'im');
+  const explicitLabel = new RegExp(`\\b${escapedAlias}\\b\\s*[:\\-|]`, 'i');
+  const uppercaseHeading = new RegExp(`\\b${escapeRegex(alias.toUpperCase()).replace(/\s+/g, '\\s+')}\\b`);
+
+  return lineHeading.test(text) || explicitLabel.test(text) || uppercaseHeading.test(text);
+}
+
+function detectSectionsFromResumeText(resumeText: string): string[] {
+  if (!resumeText) return [];
+
+  return SECTION_DEFINITIONS.filter((section) =>
+    section.aliases.some((alias) => hasSectionHeadingEvidence(resumeText, alias))
+  ).map((section) => section.label);
+}
+
+function mergeAndNormalizeSections(
+  modelSectionsFound: unknown,
+  modelSectionsMissing: unknown,
+  resumeText: string
+): { sectionsFound: string[]; sectionsMissing: string[] } {
+  const foundKeys = new Set<string>();
+
+  if (Array.isArray(modelSectionsFound)) {
+    for (const section of modelSectionsFound) {
+      if (typeof section !== 'string') continue;
+      const key = parseSectionKey(section);
+      if (key) foundKeys.add(key);
+    }
+  }
+
+  if (Array.isArray(modelSectionsMissing)) {
+    for (const section of modelSectionsMissing) {
+      if (typeof section !== 'string') continue;
+      const key = parseSectionKey(section);
+      if (!key) continue;
+
+      // Keep model intent for unknown/marginal sections, but explicit text evidence wins.
+      if (!foundKeys.has(key)) {
+        // Intentionally no-op here; final missing list is derived below.
+      }
+    }
+  }
+
+  for (const detectedSection of detectSectionsFromResumeText(resumeText)) {
+    const key = parseSectionKey(detectedSection);
+    if (key) foundKeys.add(key);
+  }
+
+  const sectionsFound = SECTION_DEFINITIONS
+    .filter((section) => foundKeys.has(section.key))
+    .map((section) => section.label);
+
+  const sectionsMissing = SECTION_DEFINITIONS
+    .filter((section) => !foundKeys.has(section.key))
+    .map((section) => section.label);
+
+  return { sectionsFound, sectionsMissing };
+}
+
+function applySectionPostProcessing(
+  analysis: Record<string, any>,
+  resumeText: string
+): ResumeAnalysisResult {
+  const toSafeScore = (value: unknown): number => {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, Math.min(100, Math.round(parsed)));
+  };
+
+  const overallScore = Math.round(
+    (toSafeScore(analysis.atsScore) +
+      toSafeScore(analysis.toneStyleScore) +
+      toSafeScore(analysis.contentScore) +
+      toSafeScore(analysis.structureScore) +
+      toSafeScore(analysis.skillsScore)) / 5
+  );
+
+  const { sectionsFound, sectionsMissing } = mergeAndNormalizeSections(
+    analysis.sectionsFound,
+    analysis.sectionsMissing,
+    resumeText
+  );
+
+  return {
+    overallScore,
+    ...analysis,
+    atsScore: toSafeScore(analysis.atsScore),
+    toneStyleScore: toSafeScore(analysis.toneStyleScore),
+    contentScore: toSafeScore(analysis.contentScore),
+    structureScore: toSafeScore(analysis.structureScore),
+    skillsScore: toSafeScore(analysis.skillsScore),
+    keywordsFound: Array.isArray(analysis.keywordsFound) ? analysis.keywordsFound : [],
+    keywordsMissing: Array.isArray(analysis.keywordsMissing) ? analysis.keywordsMissing : [],
+    sectionsFound,
+    sectionsMissing,
+  } as ResumeAnalysisResult;
+}
+
+function extractJsonObject(text: string): string {
+  const fenced = text.match(/```json\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+
+  const start = text.indexOf('{');
+  if (start === -1) {
+    throw new Error('No JSON object found in model response');
+  }
+
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (char === '\\') {
+        isEscaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === '{') {
+      depth++;
+    } else if (char === '}') {
+      depth--;
+      if (depth === 0) {
+        return text.slice(start, i + 1);
+      }
+    }
+  }
+
+  throw new Error('Incomplete JSON object in model response');
+}
+
 /**
  * Extract text from PDF file using pdf.js
  */
@@ -80,10 +343,42 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += pageText + '\n';
+
+      const textItems = textContent.items
+        .filter((item: any) => typeof item?.str === 'string')
+        .map((item: any) => ({
+          text: item.str,
+          x: Number(item.transform?.[4] ?? 0),
+          y: Number(item.transform?.[5] ?? 0),
+        }));
+
+      const lineBuckets: Array<{ y: number; items: Array<{ text: string; x: number }> }> = [];
+      const yTolerance = 2.5;
+
+      for (const item of textItems) {
+        const cleanText = String(item.text ?? '').trim();
+        if (!cleanText) continue;
+
+        let targetLine = lineBuckets.find((line) => Math.abs(line.y - item.y) <= yTolerance);
+        if (!targetLine) {
+          targetLine = { y: item.y, items: [] };
+          lineBuckets.push(targetLine);
+        }
+
+        targetLine.items.push({ text: cleanText, x: item.x });
+      }
+
+      lineBuckets.sort((a, b) => b.y - a.y);
+      const pageText = lineBuckets
+        .map((line) =>
+          line.items
+            .sort((a, b) => a.x - b.x)
+            .map((part) => part.text)
+            .join(' ')
+        )
+        .join('\n');
+
+      fullText += pageText + '\n\n';
       console.log(`✓ Extracted page ${i}/${pdf.numPages}`);
     }
     
@@ -201,6 +496,11 @@ Focus on:
 4. Resume structure and organization
 5. Relevant skills and their presentation
 
+Important for section detection:
+- Treat singular/plural as equivalent (e.g., "Certification" == "Certifications", "Project" == "Projects")
+- Recognize common heading variants (e.g., "Professional Experience", "Work Experience")
+- Do not mark a section as missing if a clear heading variant exists in the resume text
+
 Provide 3-5 actionable tips per category.`;
 
   try {
@@ -238,23 +538,12 @@ Provide 3-5 actionable tips per category.`;
     const data = await response.json();
     const text = data.candidates[0].content.parts[0].text;
     
-    // Extract JSON from markdown code blocks if present
-    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/\{[\s\S]*\}/);
-    const jsonText = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
-    
+    const jsonText = extractJsonObject(text);
     const analysis = JSON.parse(jsonText);
-
-    const overallScore = Math.round(
-      (analysis.atsScore +
-        analysis.toneStyleScore +
-        analysis.contentScore +
-        analysis.structureScore +
-        analysis.skillsScore) / 5
-    );
+    const postProcessed = applySectionPostProcessing(analysis, resumeText);
 
     return {
-      overallScore,
-      ...analysis,
+      ...postProcessed,
       modelUsed: GEMINI_MODELS.FLASH,
     };
   } catch (error) {
@@ -311,6 +600,11 @@ Perform DEEP analysis on:
 5. Skills presentation and relevance
 6. Industry-specific best practices
 
+Important for section detection:
+- Treat singular/plural as equivalent (e.g., "Certification" == "Certifications", "Project" == "Projects")
+- Recognize common heading variants (e.g., "Professional Experience", "Work Experience")
+- Do not mark a section as missing if a clear heading variant exists in the resume text
+
 Provide 5-8 highly actionable, specific tips per category with examples.`;
 
   try {
@@ -348,23 +642,12 @@ Provide 5-8 highly actionable, specific tips per category with examples.`;
     const data = await response.json();
     const text = data.candidates[0].content.parts[0].text;
     
-    // Extract JSON from markdown code blocks if present
-    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/\{[\s\S]*\}/);
-    const jsonText = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
-    
+    const jsonText = extractJsonObject(text);
     const analysis = JSON.parse(jsonText);
-
-    const overallScore = Math.round(
-      (analysis.atsScore +
-        analysis.toneStyleScore +
-        analysis.contentScore +
-        analysis.structureScore +
-        analysis.skillsScore) / 5
-    );
+    const postProcessed = applySectionPostProcessing(analysis, resumeText);
 
     return {
-      overallScore,
-      ...analysis,
+      ...postProcessed,
       modelUsed: GEMINI_MODELS.PRO,
     };
   } catch (error) {
