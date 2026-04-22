@@ -66,27 +66,37 @@ export async function action({ request }: { request: Request }) {
       analysis = await analyzeResumeText(
         cleanedResumeText,
         jobTitle || '',
-        jobDescription || ''
+        jobDescription || '',
+        { aiOnly: true }
       );
     } catch (analysisError: any) {
       console.error('❌ Analysis failed:', analysisError);
 
-      // Graceful fallback: return last saved analysis rather than failing with 500.
-      const previousData = await getResumeWithAnalysis(resumeId);
-      if (previousData.analysis && previousData.resume) {
-        return Response.json({
-          success: true,
-          analysis: previousData.analysis,
-          resume: previousData.resume,
-          message: 'AI analysis is temporarily unavailable. Showing your last saved analysis.',
-          fallback: true,
-        });
-      }
+      const details =
+        analysisError instanceof Error
+          ? analysisError.message
+          : String(analysisError || 'Unknown error');
 
-      throw new Error(`Analysis failed: ${analysisError.message}`);
+      const lowerDetails = details.toLowerCase();
+      const hint = lowerDetails.includes('api key')
+        ? 'Missing or invalid Google AI Studio API key. Set GOOGLE_AI_STUDIO_API_KEY (server) and restart the server.'
+        : lowerDetails.includes('quota') || lowerDetails.includes('rate')
+          ? 'Google AI quota/rate limit may be exceeded. Try again later or use a different key.'
+          : undefined;
+
+      return Response.json(
+        {
+          error: 'AI analysis failed',
+          details,
+          hint,
+        },
+        { status: 503 }
+      );
     }
 
     console.log('📊 Analysis results:');
+    console.log('  - Model Used:', analysis.modelUsed || 'unknown');
+    console.log('  - Fallback Used:', analysis.modelUsed === 'fallback-heuristic');
     console.log('  - ATS Score:', analysis.atsScore);
     console.log('  - Tone/Style Score:', analysis.toneStyleScore);
     console.log('  - Content Score:', analysis.contentScore);
@@ -122,6 +132,7 @@ export async function action({ request }: { request: Request }) {
         keywordsMissing: analysis.keywordsMissing,
         sectionsFound: analysis.sectionsFound,
         sectionsMissing: analysis.sectionsMissing,
+        aiModelUsed: analysis.modelUsed || 'unknown',
       });
 
       if (!saved) {
@@ -150,10 +161,19 @@ export async function action({ request }: { request: Request }) {
     console.log('✅ Re-analysis complete!');
     console.log('📤 Returning updated data with score:', updatedData.resume?.overall_score);
 
+    const analysisSource = analysis.modelUsed || updatedData.analysis?.ai_model_used || 'unknown';
+    const aiFailureReason = (analysis as any).aiFailureReason as string | undefined;
+    const fallbackUsed =
+      (analysisSource || '').toLowerCase().includes('fallback') ||
+      Boolean(aiFailureReason);
+
     return Response.json({
       success: true,
       analysis: updatedData.analysis,
       resume: updatedData.resume,
+      analysisSource,
+      fallbackUsed,
+      aiFailureReason: fallbackUsed ? aiFailureReason : undefined,
       message: 'Resume re-analyzed successfully',
     });
   } catch (error) {

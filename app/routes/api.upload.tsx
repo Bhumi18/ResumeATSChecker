@@ -1,6 +1,6 @@
-import { createResume, saveResumeAnalysis } from "../lib/database/index.server";
+import { createResume, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { uploadResumeFile } from "../lib/storage.server";
-import { analyzeResume, getMockAnalysis } from "../lib/ai-analyzer";
+import { analyzeResume } from "../lib/ai-analyzer";
 
 export async function action({ request }: { request: Request }) {
   try {
@@ -39,7 +39,7 @@ export async function action({ request }: { request: Request }) {
       return Response.json({ error: 'Failed to create resume record' }, { status: 500 });
     }
 
-    // Step 4: Analyze resume
+    // Step 4: Analyze resume (AI-only: Gemini Flash -> Gemini Pro fallback)
     let analysisResult;
     try {
       analysisResult = await analyzeResume(
@@ -48,10 +48,28 @@ export async function action({ request }: { request: Request }) {
         jobDescription || undefined,
         false
       );
-    } catch (aiError) {
-      console.warn("AI analysis failed, using mock data:", aiError);
-      analysisResult = getMockAnalysis();
+    } catch (aiError: any) {
+      console.error('❌ Upload AI analysis failed:', aiError);
+      try {
+        await updateResumeStatus(resume.id, 'failed', null);
+      } catch (statusError) {
+        console.error('❌ Failed to mark resume as failed:', statusError);
+      }
+
+      return Response.json(
+        {
+          error: 'AI analysis failed',
+          details: aiError instanceof Error ? aiError.message : String(aiError || 'Unknown error'),
+        },
+        { status: 503 }
+      );
     }
+
+    console.log('📊 Upload analysis source:', {
+      resumeId: resume.id,
+      fileName: file.name,
+      modelUsed: analysisResult.modelUsed,
+    });
 
     // Step 5: Save analysis
     await saveResumeAnalysis(resume.id, {

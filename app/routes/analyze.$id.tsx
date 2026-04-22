@@ -321,13 +321,47 @@ export default function AnalyzeResume() {
       console.log('Re-analysis response status:', response.status);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Re-analysis failed:', errorData);
-        throw new Error(errorData.error || 'Re-analysis failed');
+        const rawBody = await response.text().catch(() => '');
+        let errorData: any = {};
+        try {
+          errorData = rawBody ? JSON.parse(rawBody) : {};
+        } catch {
+          errorData = {};
+        }
+
+        console.error('Re-analysis failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          rawBody,
+        });
+
+        const baseError = String(errorData.error || 'Re-analysis failed');
+        const details = String(errorData.details || rawBody || '').trim();
+        const hint = String(errorData.hint || '').trim();
+        const message = [
+          details ? `${baseError}: ${details}` : baseError,
+          hint ? `Hint: ${hint}` : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        throw new Error(message);
       }
 
       const result = await response.json();
       console.log('Re-analysis result:', result);
+
+      const derivedAnalysisSource =
+        result.analysisSource || result.analysis?.ai_model_used || 'unknown';
+      const derivedFallbackUsed =
+        Boolean(result.fallbackUsed) ||
+        String(derivedAnalysisSource || '').toLowerCase().includes('fallback');
+
+      console.log('Analysis source (client):', {
+        analysisSource: derivedAnalysisSource,
+        fallbackUsed: derivedFallbackUsed,
+        aiFailureReason: result.aiFailureReason,
+      });
 
       if (result.success && result.analysis) {
         console.log('New ATS score:', result.analysis.ats_score);
@@ -413,10 +447,11 @@ export default function AnalyzeResume() {
       }
     } catch (err) {
       console.error('Error re-analyzing resume:', err);
+      const message = err instanceof Error ? err.message : 'Could not re-analyze your resume. Please try again.';
       pushBanner({
         kind: 'error',
         title: 'Re-analysis failed',
-        message: 'Could not re-analyze your resume. Please try again.',
+        message,
       });
     } finally {
       setIsReanalyzing(false);
