@@ -2,6 +2,7 @@
  * Sign In API Route
  */
 import { authenticateUser, createSession } from '../lib/auth.server';
+import { safeConsole } from '../lib/logging';
 
 export async function action({ request }: { request: Request }) {
   try {
@@ -43,7 +44,7 @@ export async function action({ request }: { request: Request }) {
 
     return response;
   } catch (error) {
-    console.error('Sign in error:', error);
+    safeConsole.error('Sign in error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -5,6 +5,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { safeConsole } from './logging';
 
 export interface OAuthProvider {
   provider: string;
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error('Failed to load user:', error);
+        safeConsole.error('Failed to load user:', error);
       } finally {
         setIsLoaded(true);
       }
@@ -147,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         credentials: 'include'
       });
     } catch (error) {
-      console.error('Sign out error:', error);
+      safeConsole.error('Sign out error:', error);
     } finally {
       setUser(null);
     }

@@ -2,6 +2,7 @@
  * Get Current User API Route
  */
 import { getUserBySession, getUserOAuthProviders } from '../lib/auth.server';
+import { safeConsole } from '../lib/logging';
 
 function getSessionToken(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
@@ -41,7 +42,7 @@ export async function loader({ request }: { request: Request }) {
       }
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    safeConsole.error('Get user error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

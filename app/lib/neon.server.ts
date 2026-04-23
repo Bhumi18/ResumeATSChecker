@@ -1,4 +1,5 @@
 import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
+import { safeConsole } from './logging';
 
 // Neon database configuration
 // Use DATABASE_URL for server-side (no VITE_ prefix)
@@ -6,8 +7,8 @@ import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 const databaseUrl = process.env.DATABASE_URL || import.meta.env.VITE_NEON_DATABASE_URL || '';
 
 if (!databaseUrl) {
-  console.error('❌ DATABASE_URL is not set! Database operations will fail.');
-  console.error('Please set DATABASE_URL in your .env file');
+  safeConsole.error('❌ DATABASE_URL is not set! Database operations will fail.');
+  safeConsole.error('Please set DATABASE_URL in your .env file');
 }
 
 // Create a SQL query function for Neon
@@ -22,7 +23,7 @@ export async function query<T = any>(
     const result = await sql(sqlQuery, params);
     return result as T[];
   } catch (error) {
-    console.error('Database query error:', error);
+    safeConsole.error('Database query error:', error);
     throw error;
   }
 }
@@ -36,7 +37,7 @@ export async function queryOne<T = any>(
     const result = await sql(sqlQuery, params);
     return result[0] as T || null;
   } catch (error) {
-    console.error('Database query error:', error);
+    safeConsole.error('Database query error:', error);
     throw error;
   }
 }
@@ -50,7 +51,7 @@ export async function execute(
     await sql(sqlQuery, params);
     return true;
   } catch (error) {
-    console.error('Database execution error:', error);
+    safeConsole.error('Database execution error:', error);
     return false;
   }
 }

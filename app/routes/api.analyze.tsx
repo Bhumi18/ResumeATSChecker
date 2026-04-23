@@ -1,6 +1,7 @@
 import "../lib/env.server";
 import { getResumeWithAnalysis, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { analyzeResumeText } from "../lib/ai-analyzer";
+import { safeConsole } from "../lib/logging";
 
 export async function loader({ request }: { request: Request }) {
   try {
@@ -26,7 +27,7 @@ export async function loader({ request }: { request: Request }) {
       resumeUrl,
     });
   } catch (error) {
-    console.error('Error in analyze API:', error);
+    safeConsole.error('Error in analyze API:', error);
     return Response.json({
       error: 'Failed to load resume',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -40,12 +41,12 @@ export async function action({ request }: { request: Request }) {
     const body = await request.json();
     const { resumeId, resumeText, jobDescription, jobTitle } = body;
 
-    console.log('🔄 API action called for re-analysis');
-    console.log('📝 Resume ID:', resumeId);
-    console.log('📄 Text length:', resumeText?.length);
+    safeConsole.log('🔄 API action called for re-analysis');
+    safeConsole.log('📝 Resume ID:', resumeId);
+    safeConsole.log('📄 Text length:', resumeText?.length);
 
     if (!resumeId || !resumeText) {
-      console.error('❌ Missing required fields');
+      safeConsole.error('❌ Missing required fields');
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -59,7 +60,7 @@ export async function action({ request }: { request: Request }) {
       );
     }
 
-    console.log('🔄 Starting resume analysis...');
+    safeConsole.log('🔄 Starting resume analysis...');
 
     // Analyze the edited resume text
     let analysis;
@@ -71,7 +72,7 @@ export async function action({ request }: { request: Request }) {
         { aiOnly: true }
       );
     } catch (analysisError: any) {
-      console.error('❌ Analysis failed:', analysisError);
+      safeConsole.error('❌ Analysis failed:', analysisError);
 
       const details =
         analysisError instanceof Error
@@ -95,14 +96,14 @@ export async function action({ request }: { request: Request }) {
       );
     }
 
-    console.log('📊 Analysis results:');
-    console.log('  - Model Used:', analysis.modelUsed || 'unknown');
-    console.log('  - Fallback Used:', analysis.modelUsed === 'fallback-heuristic');
-    console.log('  - ATS Score:', analysis.atsScore);
-    console.log('  - Tone/Style Score:', analysis.toneStyleScore);
-    console.log('  - Content Score:', analysis.contentScore);
-    console.log('  - Structure Score:', analysis.structureScore);
-    console.log('  - Skills Score:', analysis.skillsScore);
+    safeConsole.log('📊 Analysis results:', {
+      modelUsed: analysis.modelUsed || 'unknown',
+      atsScore: analysis.atsScore,
+      toneStyleScore: analysis.toneStyleScore,
+      contentScore: analysis.contentScore,
+      structureScore: analysis.structureScore,
+      skillsScore: analysis.skillsScore,
+    });
 
     // Calculate overall score
     const overallScore = Math.round(
@@ -113,10 +114,10 @@ export async function action({ request }: { request: Request }) {
         analysis.skillsScore) / 5
     );
     
-    console.log('🎯 Overall Score:', overallScore);
+    safeConsole.log('🎯 Overall Score:', overallScore);
 
     // Save the new analysis to database
-    console.log('💾 Saving analysis to database...');
+    safeConsole.log('💾 Saving analysis to database...');
     try {
       const saved = await saveResumeAnalysis(resumeId, {
         atsScore: analysis.atsScore,
@@ -139,28 +140,28 @@ export async function action({ request }: { request: Request }) {
       if (!saved) {
         throw new Error('Failed to save analysis to database');
       }
-      console.log('✅ Analysis saved successfully');
+      safeConsole.log('✅ Analysis saved successfully');
     } catch (dbError: any) {
-      console.error('❌ Database save failed:', dbError);
+      safeConsole.error('❌ Database save failed:', dbError);
       throw new Error(`Database error: ${dbError.message}`);
     }
 
     // Update resume status and score
-    console.log('🔄 Updating resume status...');
+    safeConsole.log('🔄 Updating resume status...');
     try {
       await updateResumeStatus(resumeId, 'completed', overallScore);
-      console.log('✅ Resume status updated');
+      safeConsole.log('✅ Resume status updated');
     } catch (statusError: any) {
-      console.error('❌ Status update failed:', statusError);
+      safeConsole.error('❌ Status update failed:', statusError);
       // Don't throw here, analysis is already saved
     }
 
     // Fetch updated data
-    console.log('📥 Fetching updated data...');
+    safeConsole.log('📥 Fetching updated data...');
     const updatedData = await getResumeWithAnalysis(resumeId);
 
-    console.log('✅ Re-analysis complete!');
-    console.log('📤 Returning updated data with score:', updatedData.resume?.overall_score);
+    safeConsole.log('✅ Re-analysis complete!');
+    safeConsole.log('📤 Returning updated data with score:', updatedData.resume?.overall_score);
 
     const analysisSource = analysis.modelUsed || updatedData.analysis?.ai_model_used || 'unknown';
     const aiFailureReason = (analysis as any).aiFailureReason as string | undefined;
@@ -178,7 +179,7 @@ export async function action({ request }: { request: Request }) {
       message: 'Resume re-analyzed successfully',
     });
   } catch (error) {
-    console.error('❌ Error in re-analysis:', error);
+    safeConsole.error('❌ Error in re-analysis:', error);
     return Response.json({
       error: 'Failed to re-analyze resume',
       details: error instanceof Error ? error.message : 'Unknown error'

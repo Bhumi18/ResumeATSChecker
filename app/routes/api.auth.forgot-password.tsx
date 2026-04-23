@@ -1,5 +1,6 @@
 import type { Route } from "./+types/api.auth.forgot-password";
 import { createPasswordResetToken } from "../lib/auth.server";
+import { safeConsole } from "../lib/logging";
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -28,13 +29,13 @@ export async function action({ request }: Route.ActionArgs) {
       
       // TODO: Send email with reset link
       // For now, just log it to console (development only)
-      console.log('==============================================');
-      console.log('PASSWORD RESET REQUEST');
-      console.log('==============================================');
-      console.log('Email:', email);
-      console.log('Reset URL:', resetUrl);
-      console.log('Token expires in 1 hour');
-      console.log('==============================================');
+      safeConsole.log('==============================================');
+      safeConsole.log('PASSWORD RESET REQUEST');
+      safeConsole.log('==============================================');
+      safeConsole.log('Email:', email);
+      safeConsole.log('Reset URL:', resetUrl);
+      safeConsole.log('Token expires in 1 hour');
+      safeConsole.log('==============================================');
     }
 
     // Always return success message (even if email doesn't exist)
@@ -44,7 +45,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
 
   } catch (error) {
-    console.error('Forgot password error:', error);
+    safeConsole.error('Forgot password error:', error);
     return Response.json(
       { error: "An error occurred processing your request" },
       { status: 500 }

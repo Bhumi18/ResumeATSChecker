@@ -5,6 +5,7 @@
 
 import { sql, queryOne, execute, query } from './neon.server';
 import type { Database } from '../../types/database';
+import { safeConsole } from './logging';
 
 type User = Database['public']['Tables']['users']['Row'];
 type Session = {
@@ -70,7 +71,7 @@ export async function createUser(
     
     return result;
   } catch (error) {
-    console.error('Error creating user:', error);
+    safeConsole.error('Error creating user:', error);
     return null;
   }
 }
@@ -96,7 +97,7 @@ export async function authenticateUser(email: string, password: string): Promise
     
     return user;
   } catch (error) {
-    console.error('Error authenticating user:', error);
+    safeConsole.error('Error authenticating user:', error);
     return null;
   }
 }
@@ -121,7 +122,7 @@ export async function createSession(
     
     return sessionToken;
   } catch (error) {
-    console.error('Error creating session:', error);
+    safeConsole.error('Error creating session:', error);
     return null;
   }
 }
@@ -154,7 +155,7 @@ export async function validateSession(sessionToken: string): Promise<User | null
     
     return user;
   } catch (error) {
-    console.error('Error validating session:', error);
+    safeConsole.error('Error validating session:', error);
     return null;
   }
 }
@@ -180,7 +181,7 @@ export async function getUserBySession(sessionToken: string): Promise<User | nul
     
     return user;
   } catch (error) {
-    console.error('Error getting user by session:', error);
+    safeConsole.error('Error getting user by session:', error);
     return null;
   }
 }
@@ -196,7 +197,7 @@ export async function deleteSession(sessionToken: string): Promise<boolean> {
     );
     return true;
   } catch (error) {
-    console.error('Error deleting session:', error);
+    safeConsole.error('Error deleting session:', error);
     return false;
   }
 }
@@ -212,7 +213,7 @@ export async function deleteAllUserSessions(userId: string): Promise<boolean> {
     );
     return true;
   } catch (error) {
-    console.error('Error deleting all user sessions:', error);
+    safeConsole.error('Error deleting all user sessions:', error);
     return false;
   }
 }
@@ -229,7 +230,7 @@ export async function updateUserPassword(userId: string, newPassword: string): P
     );
     return true;
   } catch (error) {
-    console.error('Error updating password:', error);
+    safeConsole.error('Error updating password:', error);
     return false;
   }
 }
@@ -245,7 +246,7 @@ export async function isEmailTaken(email: string): Promise<boolean> {
     );
     return !!result;
   } catch (error) {
-    console.error('Error checking email:', error);
+    safeConsole.error('Error checking email:', error);
     return false;
   }
 }
@@ -260,7 +261,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
       [email]
     );
   } catch (error) {
-    console.error('Error getting user by email:', error);
+    safeConsole.error('Error getting user by email:', error);
     return null;
   }
 }
@@ -275,7 +276,7 @@ export async function getUserById(id: string): Promise<User | null> {
       [id]
     );
   } catch (error) {
-    console.error('Error getting user by ID:', error);
+    safeConsole.error('Error getting user by ID:', error);
     return null;
   }
 }
@@ -321,7 +322,7 @@ export async function updateUserProfile(
     
     return await queryOne<User>(query, values);
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    safeConsole.error('Error updating user profile:', error);
     return null;
   }
 }
@@ -375,7 +376,7 @@ export async function createPasswordResetToken(
     
     return { token, userId: user.id };
   } catch (error) {
-    console.error('Error creating password reset token:', error);
+    safeConsole.error('Error creating password reset token:', error);
     return null;
   }
 }
@@ -396,7 +397,7 @@ export async function validateResetToken(token: string): Promise<string | null> 
     
     return result?.user_id || null;
   } catch (error) {
-    console.error('Error validating reset token:', error);
+    safeConsole.error('Error validating reset token:', error);
     return null;
   }
 }
@@ -432,7 +433,7 @@ export async function resetPasswordWithToken(
     
     return true;
   } catch (error) {
-    console.error('Error resetting password:', error);
+    safeConsole.error('Error resetting password:', error);
     return false;
   }
 }
@@ -549,7 +550,7 @@ export async function findOrCreateOAuthUser(
 
     return user;
   } catch (error) {
-    console.error('Error finding/creating OAuth user:', error);
+    safeConsole.error('Error finding/creating OAuth user:', error);
     return null;
   }
 }
@@ -567,7 +568,7 @@ export async function getOAuthAccount(
       [userId, provider]
     );
   } catch (error) {
-    console.error('Error getting OAuth account:', error);
+    safeConsole.error('Error getting OAuth account:', error);
     return null;
   }
 }
@@ -584,7 +585,7 @@ export async function getUserOAuthProviders(
       [userId]
     );
   } catch (error) {
-    console.error('Error getting user OAuth providers:', error);
+    safeConsole.error('Error getting user OAuth providers:', error);
     return [];
   }
 }
@@ -603,7 +604,7 @@ export async function unlinkOAuthAccount(
     );
     return true;
   } catch (error) {
-    console.error('Error unlinking OAuth account:', error);
+    safeConsole.error('Error unlinking OAuth account:', error);
     return false;
   }
 }

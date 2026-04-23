@@ -1,4 +1,5 @@
 import "../lib/env.server";
+import { safeConsole } from "../lib/logging";
 import { createResume, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { uploadResumeFile } from "../lib/storage.server";
 import { analyzeResume } from "../lib/ai-analyzer";
@@ -50,11 +51,11 @@ export async function action({ request }: { request: Request }) {
         false
       );
     } catch (aiError: any) {
-      console.error('❌ Upload AI analysis failed:', aiError);
+      safeConsole.error('❌ Upload AI analysis failed:', aiError);
       try {
         await updateResumeStatus(resume.id, 'failed', undefined);
       } catch (statusError) {
-        console.error('❌ Failed to mark resume as failed:', statusError);
+        safeConsole.error('❌ Failed to mark resume as failed:', statusError);
       }
 
       return Response.json(
@@ -66,7 +67,7 @@ export async function action({ request }: { request: Request }) {
       );
     }
 
-    console.log('📊 Upload analysis source:', {
+    safeConsole.log('📊 Upload analysis source:', {
       resumeId: resume.id,
       fileName: file.name,
       modelUsed: analysisResult.modelUsed,
@@ -96,7 +97,7 @@ export async function action({ request }: { request: Request }) {
       resumeId: resume.id 
     });
   } catch (error) {
-    console.error('Error in upload API:', error);
+    safeConsole.error('Error in upload API:', error);
     return Response.json({ 
       error: 'Upload failed',
       details: error instanceof Error ? error.message : 'Unknown error'

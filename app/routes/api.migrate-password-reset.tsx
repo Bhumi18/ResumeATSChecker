@@ -1,5 +1,6 @@
 import type { Route } from "./+types/api.migrate-password-reset";
 import { execute } from "../lib/neon.server";
+import { safeConsole } from "../lib/logging";
 
 export async function loader({ request }: Route.LoaderArgs) {
   try {
@@ -26,7 +27,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       message: "Password reset table created successfully" 
     });
   } catch (error: any) {
-    console.error('Migration error:', error);
+    safeConsole.error('Migration error:', error);
     return Response.json({ 
       success: false, 
       error: error.message 

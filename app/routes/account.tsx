@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useUser, useAuth } from "../lib/auth-context";
 import { useNavigate } from "react-router";
+import { safeConsole } from "../lib/logging";
 
 export default function AccountPage() {
   const { user } = useUser();
@@ -137,7 +138,7 @@ export default function AccountPage() {
       setError("Password change is not yet implemented. Please contact support.");
       setShowPasswordModal(false);
     } catch (err: any) {
-      console.error("Password change error:", err);
+      safeConsole.error("Password change error:", err);
       
       // Provide clear error messages
       if (err.errors?.[0]?.code === "form_password_incorrect") {

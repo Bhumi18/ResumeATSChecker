@@ -1,5 +1,6 @@
 import { sql, queryOne, execute, query } from '../neon.server';
 import type { Database } from '../../../types/database';
+import { safeConsole } from '../logging';
 
 type Resume = Database['public']['Tables']['resumes']['Row'];
 type ResumeInsert = Database['public']['Tables']['resumes']['Insert'];
@@ -34,7 +35,7 @@ export async function createResume(
 
     return result[0] || null;
   } catch (error) {
-    console.error('Error in createResume:', error);
+    safeConsole.error('Error in createResume:', error);
     return null;
   }
 }
@@ -51,7 +52,7 @@ export async function getUserResumes(userId: string): Promise<Resume[]> {
 
     return result || [];
   } catch (error) {
-    console.error('Error in getUserResumes:', error);
+    safeConsole.error('Error in getUserResumes:', error);
     return [];
   }
 }
@@ -83,7 +84,7 @@ export async function getResumeWithAnalysis(resumeId: string): Promise<{
       analysis,
     };
   } catch (error) {
-    console.error('Error in getResumeWithAnalysis:', error);
+    safeConsole.error('Error in getResumeWithAnalysis:', error);
     return { resume: null, analysis: null };
   }
 }
@@ -110,7 +111,7 @@ export async function updateResumeStatus(
 
     return await execute(query, params);
   } catch (error) {
-    console.error('Error in updateResumeStatus:', error);
+    safeConsole.error('Error in updateResumeStatus:', error);
     return false;
   }
 }
@@ -125,7 +126,7 @@ export async function deleteResume(resumeId: string): Promise<boolean> {
       [resumeId]
     );
   } catch (error) {
-    console.error('Error in deleteResume:', error);
+    safeConsole.error('Error in deleteResume:', error);
     return false;
   }
 }
@@ -143,7 +144,7 @@ export async function deleteResumeForUser(
       [resumeId, userId]
     );
   } catch (error) {
-    console.error('Error in deleteResumeForUser:', error);
+    safeConsole.error('Error in deleteResumeForUser:', error);
     return false;
   }
 }
@@ -180,7 +181,7 @@ export async function updateResumeDetailsForUser(
 
     return result[0] || null;
   } catch (error) {
-    console.error('Error in updateResumeDetailsForUser:', error);
+    safeConsole.error('Error in updateResumeDetailsForUser:', error);
     return null;
   }
 }
@@ -269,7 +270,7 @@ export async function saveResumeAnalysis(
 
     return true;
   } catch (error) {
-    console.error('Error in saveResumeAnalysis:', error);
+    safeConsole.error('Error in saveResumeAnalysis:', error);
     return false;
   }
 }

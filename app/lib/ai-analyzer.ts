@@ -9,6 +9,8 @@
  * - text-embedding-004: Semantic matching & embeddings
  */
 
+import { redactErrorMessage, safeConsole } from "./logging";
+
 interface ResumeAnalysisResult {
   overallScore: number;
   atsScore: number;
@@ -996,7 +998,7 @@ function extractJsonObject(text: string): string {
  */
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
-    console.log('📄 Starting PDF text extraction...', {
+    safeConsole.log('📄 Starting PDF text extraction...', {
       fileName: file.name,
       fileSize: `${(file.size / 1024).toFixed(2)} KB`,
       fileType: file.type
@@ -1008,8 +1010,8 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     // Disable worker to avoid version mismatch issues - use main thread
     pdfjsLib.GlobalWorkerOptions.workerSrc = '';
     
-    console.log('🔧 PDF.js configured (no worker, main thread mode)');
-    console.log('🔧 PDF.js version:', pdfjsLib.version);
+    safeConsole.log('🔧 PDF.js configured (no worker, main thread mode)');
+    safeConsole.log('🔧 PDF.js version:', pdfjsLib.version);
 
     const arrayBuffer = await file.arrayBuffer();
     
@@ -1023,7 +1025,7 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     
     const pdf = await loadingTask.promise;
     
-    console.log(`📖 PDF loaded: ${pdf.numPages} pages`);
+    safeConsole.log(`📖 PDF loaded: ${pdf.numPages} pages`);
     
     let fullText = '';
     
@@ -1066,13 +1068,13 @@ export async function extractTextFromPDF(file: File): Promise<string> {
         .join('\n');
 
       fullText += pageText + '\n\n';
-      console.log(`✓ Extracted page ${i}/${pdf.numPages}`);
+      safeConsole.log(`✓ Extracted page ${i}/${pdf.numPages}`);
     }
     
-    console.log(`✅ PDF extraction complete: ${fullText.length} characters`);
+    safeConsole.log(`✅ PDF extraction complete: ${fullText.length} characters`);
     return fullText;
   } catch (error) {
-    console.error('❌ Error extracting text from PDF:', error);
+    safeConsole.error('❌ Error extracting text from PDF:', error);
     throw new Error('Failed to extract text from PDF');
   }
 }
@@ -1092,7 +1094,16 @@ export async function extractTextFromFile(file: File): Promise<string> {
   ) {
     const mammoth = await import('mammoth');
     const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer });
+    // In Node, Mammoth reliably supports `buffer`. Some builds reject `arrayBuffer`
+    // with "Could not find file in options".
+    let result: any;
+    try {
+      const nodeBuffer = await import('node:buffer');
+      const buffer = nodeBuffer.Buffer.from(arrayBuffer);
+      result = await mammoth.extractRawText({ buffer });
+    } catch {
+      result = await mammoth.extractRawText({ arrayBuffer });
+    }
     return String(result.value || '').trim();
   }
 
@@ -1118,7 +1129,7 @@ export async function generateEmbedding(
   const apiKey = getGoogleAiStudioApiKey();
   
   if (!apiKey) {
-    console.error('Google AI Studio API key not configured');
+    safeConsole.error('Google AI Studio API key not configured');
     return null;
   }
 
@@ -1143,14 +1154,14 @@ export async function generateEmbedding(
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Embedding API error:', error);
+      safeConsole.error('Embedding API error:', redactErrorMessage(error));
       return null;
     }
 
     const data = await response.json();
     return data.embedding?.values || null;
   } catch (error) {
-    console.error('Error generating embedding:', error);
+    safeConsole.error('Error generating embedding:', error);
     return null;
   }
 }
@@ -1237,7 +1248,7 @@ Important for section detection:
 Provide 3-5 actionable tips per category.`;
 
   try {
-    console.log(`🚀 Calling Gemini Flash API: ${GEMINI_MODELS.FLASH}`);
+    safeConsole.log(`🚀 Calling Gemini Flash API: ${GEMINI_MODELS.FLASH}`);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODELS.FLASH}:generateContent?key=${apiKey}`,
       {
@@ -1266,7 +1277,9 @@ Provide 3-5 actionable tips per category.`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Gemini Flash API error: ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Gemini Flash API error: ${response.statusText} - ${redactErrorMessage(errorText)}`
+      );
     }
 
     const data = await response.json();
@@ -1279,7 +1292,7 @@ Provide 3-5 actionable tips per category.`;
     const analysis = JSON.parse(jsonText);
     const postProcessed = applySectionPostProcessing(analysis, resumeText, jobTitle, sanitizedJobDescription);
 
-    console.log('✅ AI analysis source:', {
+    safeConsole.log('✅ AI analysis source:', {
       modelUsed: GEMINI_MODELS.FLASH,
       keywordCounts: {
         found: postProcessed.keywordsFound?.length || 0,
@@ -1292,7 +1305,7 @@ Provide 3-5 actionable tips per category.`;
       modelUsed: GEMINI_MODELS.FLASH,
     };
   } catch (error) {
-    console.error('Error analyzing with Gemini Flash:', error);
+    safeConsole.error('Error analyzing with Gemini Flash:', error);
     throw error;
   }
 }
@@ -1367,7 +1380,7 @@ Important for section detection:
 Provide 5-8 highly actionable, specific tips per category with examples.`;
 
   try {
-    console.log(`🚀 Calling Gemini Pro API: ${GEMINI_MODELS.PRO}`);
+    safeConsole.log(`🚀 Calling Gemini Pro API: ${GEMINI_MODELS.PRO}`);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODELS.PRO}:generateContent?key=${apiKey}`,
       {
@@ -1396,7 +1409,9 @@ Provide 5-8 highly actionable, specific tips per category with examples.`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Gemini Pro API error: ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Gemini Pro API error: ${response.statusText} - ${redactErrorMessage(errorText)}`
+      );
     }
 
     const data = await response.json();
@@ -1409,7 +1424,7 @@ Provide 5-8 highly actionable, specific tips per category with examples.`;
     const analysis = JSON.parse(jsonText);
     const postProcessed = applySectionPostProcessing(analysis, resumeText, jobTitle, sanitizedJobDescription);
 
-    console.log('✅ AI analysis source:', {
+    safeConsole.log('✅ AI analysis source:', {
       modelUsed: GEMINI_MODELS.PRO,
       keywordCounts: {
         found: postProcessed.keywordsFound?.length || 0,
@@ -1422,7 +1437,7 @@ Provide 5-8 highly actionable, specific tips per category with examples.`;
       modelUsed: GEMINI_MODELS.PRO,
     };
   } catch (error) {
-    console.error('Error analyzing with Gemini Pro:', error);
+    safeConsole.error('Error analyzing with Gemini Pro:', error);
     throw error;
   }
 }
@@ -1456,11 +1471,11 @@ export async function analyzeResumeFast(
       return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
     } catch (flashError: any) {
       // If Flash fails due to rate limit or quota, throw to allow fallback
-      console.warn('Gemini Flash failed:', flashError.message);
+      safeConsole.warn('Gemini Flash failed:', flashError?.message);
       throw flashError;
     }
   } catch (error) {
-    console.error('Error in analyzeResumeFast:', error);
+    safeConsole.error('Error in analyzeResumeFast:', error);
     throw error;
   }
 }
@@ -1491,7 +1506,7 @@ export async function analyzeResumePremium(
 
     return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
   } catch (error) {
-    console.error('Error in analyzeResumePremium:', error);
+    safeConsole.error('Error in analyzeResumePremium:', error);
     throw error;
   }
 }
@@ -1523,22 +1538,22 @@ export async function analyzeResume(
 
     // If premium requested, use Pro model directly
     if (usePremium) {
-      console.log('Using Gemini Pro for premium analysis...');
+      safeConsole.log('Using Gemini Pro for premium analysis...');
       return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
     }
 
     // Otherwise, try Flash first for fast analysis
     try {
-      console.log('Using Gemini Flash for fast analysis...');
+      safeConsole.log('Using Gemini Flash for fast analysis...');
       return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
     } catch (flashError: any) {
       // If Flash fails (quota/rate limit), fallback to Pro
-      console.warn('Gemini Flash failed, falling back to Pro:', flashError.message);
-      console.log('Retrying with Gemini Pro...');
+      safeConsole.warn('Gemini Flash failed, falling back to Pro:', flashError?.message);
+      safeConsole.log('Retrying with Gemini Pro...');
       return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
     }
   } catch (error) {
-    console.error('Error in analyzeResume:', error);
+    safeConsole.error('Error in analyzeResume:', error);
     throw error;
   }
 }
@@ -1565,10 +1580,10 @@ export async function analyzeResumeText(
   }
 
   try {
-    console.log('🔄 Analyzing resume text...');
+    safeConsole.log('🔄 Analyzing resume text...');
     // Use Flash for fast re-analysis
     try {
-      console.log('Trying Gemini Flash...');
+      safeConsole.log('Trying Gemini Flash...');
       return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
     } catch (flashError: any) {
       const flashErrorMessage = formatAiError(flashError);
@@ -1576,19 +1591,19 @@ export async function analyzeResumeText(
       // If Flash fails because output is malformed/truncated JSON, retry once with stricter settings.
       if (looksLikeModelOutputOrParseError(flashErrorMessage)) {
         try {
-          console.warn('Gemini Flash returned invalid JSON; retrying with stricter settings...');
+          safeConsole.warn('Gemini Flash returned invalid JSON; retrying with stricter settings...');
           return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription, {
             temperature: 0.2,
             maxOutputTokens: 4500,
           });
         } catch (flashRetryError: any) {
-          console.warn('Gemini Flash retry failed:', formatAiError(flashRetryError));
+          safeConsole.warn('Gemini Flash retry failed:', formatAiError(flashRetryError));
         }
       }
 
       // Otherwise fallback to Pro
-      console.warn('Gemini Flash failed, falling back to Pro:', flashErrorMessage);
-      console.log('Retrying with Gemini Pro...');
+      safeConsole.warn('Gemini Flash failed, falling back to Pro:', flashErrorMessage);
+      safeConsole.log('Retrying with Gemini Pro...');
       try {
         return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
       } catch (proError: any) {
@@ -1596,7 +1611,7 @@ export async function analyzeResumeText(
 
         if (looksLikeModelOutputOrParseError(proErrorMessage)) {
           try {
-            console.warn('Gemini Pro returned invalid JSON; retrying with stricter settings...');
+            safeConsole.warn('Gemini Pro returned invalid JSON; retrying with stricter settings...');
             return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription, {
               temperature: 0.2,
               maxOutputTokens: 8000,
@@ -1606,16 +1621,16 @@ export async function analyzeResumeText(
           }
         }
 
-        console.error('Both Gemini Flash and Pro failed:', proErrorMessage);
+        safeConsole.error('Both Gemini Flash and Pro failed:', proErrorMessage);
         const aiFailureReason = `Flash: ${flashErrorMessage} | Pro: ${proErrorMessage}`;
 
         if (options?.aiOnly) {
           throw new Error(aiFailureReason);
         }
 
-        console.warn('Using heuristic analysis fallback...');
+        safeConsole.warn('Using heuristic analysis fallback...');
         const fallback = generateHeuristicAnalysis(resumeText, jobTitle, jobDescription);
-        console.warn('⚠️ Analysis source:', {
+        safeConsole.warn('⚠️ Analysis source:', {
           modelUsed: fallback.modelUsed,
           reason: 'AI models unavailable during re-analysis',
         });
@@ -1626,7 +1641,7 @@ export async function analyzeResumeText(
       }
     }
   } catch (error) {
-    console.error('Error in analyzeResumeText:', error);
+    safeConsole.error('Error in analyzeResumeText:', error);
     throw error;
   }
 }
@@ -1639,19 +1654,19 @@ export async function analyzeResumeWithFallback(
 ): Promise<ResumeAnalysisResult> {
   try {
     const aiResult = await analyzeResume(file, jobTitle, jobDescription, usePremium);
-    console.log('✅ Analysis source:', {
+    safeConsole.log('✅ Analysis source:', {
       modelUsed: aiResult.modelUsed,
       fileName: file.name,
       fallbackUsed: false,
     });
     return aiResult;
   } catch (error) {
-    console.warn('Primary analysis failed, running heuristic fallback:', error);
+    safeConsole.warn('Primary analysis failed, running heuristic fallback:', error);
     try {
       const resumeText = await extractTextFromFile(file);
       if (resumeText && resumeText.trim().length >= 100) {
         const fallback = generateHeuristicAnalysis(resumeText, jobTitle, jobDescription);
-        console.warn('⚠️ Analysis source:', {
+        safeConsole.warn('⚠️ Analysis source:', {
           modelUsed: fallback.modelUsed,
           fileName: file.name,
           fallbackUsed: true,
@@ -1662,7 +1677,7 @@ export async function analyzeResumeWithFallback(
         };
       }
     } catch (extractError) {
-      console.error('Fallback extraction failed:', extractError);
+      safeConsole.error('Fallback extraction failed:', extractError);
     }
 
     const fallback = generateHeuristicAnalysis(
@@ -1670,7 +1685,7 @@ export async function analyzeResumeWithFallback(
       jobTitle,
       jobDescription
     );
-    console.warn('⚠️ Analysis source:', {
+    safeConsole.warn('⚠️ Analysis source:', {
       modelUsed: fallback.modelUsed,
       fileName: file.name,
       fallbackUsed: true,
@@ -1824,7 +1839,7 @@ OUTPUT FORMAT: Return ONLY the complete resume text, no explanations, no JSON, n
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Gemini API error: ${response.statusText} - ${errorText}`);
+      throw new Error(`Gemini API error: ${response.statusText} - ${redactErrorMessage(errorText)}`);
     }
 
     const data = await response.json();
@@ -1832,7 +1847,7 @@ OUTPUT FORMAT: Return ONLY the complete resume text, no explanations, no JSON, n
     
     return optimizedResume;
   } catch (error) {
-    console.error('Error generating optimized resume:', error);
+    safeConsole.error('Error generating optimized resume:', error);
     throw error;
   }
 }
@@ -1854,6 +1869,6 @@ export async function reAnalyzeResume(
   }
 
   // Use the same analysis function but mark it as re-analysis
-  console.log('Re-analyzing resume with updated content...');
+  safeConsole.log('Re-analyzing resume with updated content...');
   return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
 }

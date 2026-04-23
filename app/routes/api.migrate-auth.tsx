@@ -2,6 +2,7 @@
  * Database Migration Route - Run Auth Schema
  */
 import { execute } from '../lib/neon.server';
+import { safeConsole } from '../lib/logging';
 
 export async function loader() {
   try {
@@ -69,7 +70,7 @@ export async function loader() {
       ]
     });
   } catch (error) {
-    console.error('Migration error:', error);
+    safeConsole.error('Migration error:', error);
     return Response.json({
       success: false,
       error: 'Migration failed',

@@ -1,4 +1,5 @@
 import { getUserBySession, unlinkOAuthAccount } from '../lib/auth.server';
+import { safeConsole } from '../lib/logging';
 
 function getSessionToken(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
@@ -43,7 +44,7 @@ export async function action({ request }: { request: Request }) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error('Disconnect Google error:', error);
+    safeConsole.error('Disconnect Google error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

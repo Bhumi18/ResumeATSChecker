@@ -1,5 +1,6 @@
 import { sql, queryOne, execute, query } from '../neon.server';
 import type { Database } from '../../../types/database';
+import { safeConsole } from '../logging';
 
 type User = Database['public']['Tables']['users']['Row'];
 type UserInsert = Database['public']['Tables']['users']['Insert'];
@@ -35,7 +36,7 @@ export async function getOrCreateUser(clerkUserId: string, userData: {
     const createdUser = createdUsers[0];
 
     if (!createdUser) {
-      console.error('Error creating user');
+      safeConsole.error('Error creating user');
       return null;
     }
 
@@ -48,7 +49,7 @@ export async function getOrCreateUser(clerkUserId: string, userData: {
 
     return createdUser;
   } catch (error) {
-    console.error('Error in getOrCreateUser:', error);
+    safeConsole.error('Error in getOrCreateUser:', error);
     return null;
   }
 }
@@ -92,7 +93,7 @@ export async function updateUserProfile(
     const query = `UPDATE users SET ${updateFields.join(', ')} WHERE clerk_user_id = $${paramCount}`;
     return await execute(query, values);
   } catch (error) {
-    console.error('Error in updateUserProfile:', error);
+    safeConsole.error('Error in updateUserProfile:', error);
     return false;
   }
 }
@@ -107,7 +108,7 @@ export async function getUserByClerkId(clerkUserId: string): Promise<User | null
       [clerkUserId]
     );
   } catch (error) {
-    console.error('Error in getUserByClerkId:', error);
+    safeConsole.error('Error in getUserByClerkId:', error);
     return null;
   }
 }

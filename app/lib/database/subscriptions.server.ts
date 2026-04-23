@@ -1,5 +1,6 @@
 import { sql, queryOne, execute } from '../neon.server';
 import type { Database } from '../../../types/database';
+import { safeConsole } from '../logging';
 
 type UserSubscription = Database['public']['Tables']['user_subscriptions']['Row'];
 
@@ -13,7 +14,7 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
       [userId]
     );
   } catch (error) {
-    console.error('Error in getUserSubscription:', error);
+    safeConsole.error('Error in getUserSubscription:', error);
     return null;
   }
 }
@@ -35,7 +36,7 @@ export async function canAnalyzeResume(userId: string): Promise<{
       limit: 999,
     };
   } catch (error) {
-    console.error('Error in canAnalyzeResume:', error);
+    safeConsole.error('Error in canAnalyzeResume:', error);
     return { allowed: true, remaining: 999, limit: 999 };
   }
 }
@@ -53,7 +54,7 @@ export async function incrementResumeCount(userId: string): Promise<boolean> {
       [userId]
     );
   } catch (error) {
-    console.error('Error in incrementResumeCount:', error);
+    safeConsole.error('Error in incrementResumeCount:', error);
     return false;
   }
 }
@@ -74,7 +75,7 @@ export async function updateSubscriptionPlan(
       [planType, resumesLimit, userId]
     );
   } catch (error) {
-    console.error('Error in updateSubscriptionPlan:', error);
+    safeConsole.error('Error in updateSubscriptionPlan:', error);
     return false;
   }
 }

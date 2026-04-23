@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { safeConsole } from './logging';
 
 /**
  * Upload a resume file to local storage
@@ -31,7 +32,7 @@ export async function uploadResumeFile(
       path: publicPath,
     };
   } catch (error) {
-    console.error('Error in uploadResumeFile:', error);
+    safeConsole.error('Error in uploadResumeFile:', error);
     return null;
   }
 }
@@ -48,7 +49,7 @@ export async function getSignedResumeUrl(
     // For local storage, just return the public path
     return filePath;
   } catch (error) {
-    console.error('Error in getSignedResumeUrl:', error);
+    safeConsole.error('Error in getSignedResumeUrl:', error);
     return null;
   }
 }
@@ -62,7 +63,7 @@ export async function deleteResumeFile(filePath: string): Promise<boolean> {
     await fs.unlink(fullPath);
     return true;
   } catch (error) {
-    console.error('Error in deleteResumeFile:', error);
+    safeConsole.error('Error in deleteResumeFile:', error);
     return false;
   }
 }
@@ -80,7 +81,7 @@ export async function generateResumeThumbnail(
     // This would require a PDF processing library on the server
     return null;
   } catch (error) {
-    console.error('Error in generateResumeThumbnail:', error);
+    safeConsole.error('Error in generateResumeThumbnail:', error);
     return null;
   }
 }

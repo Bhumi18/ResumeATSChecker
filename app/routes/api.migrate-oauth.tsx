@@ -1,5 +1,6 @@
 import type { Route } from "./+types/api.migrate-oauth";
 import { execute } from "../lib/neon.server";
+import { safeConsole } from "../lib/logging";
 
 export async function loader({ request }: Route.LoaderArgs) {
   try {
@@ -31,7 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       message: "OAuth tables created successfully" 
     });
   } catch (error: any) {
-    console.error('OAuth migration error:', error);
+    safeConsole.error('OAuth migration error:', error);
     return Response.json({ 
       success: false, 
       error: error.message 

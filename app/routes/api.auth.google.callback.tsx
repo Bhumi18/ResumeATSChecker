@@ -94,7 +94,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
 
   } catch (error) {
-    console.error('Google OAuth callback error:', error);
+    safeConsole.error('Google OAuth callback error:', error);
     return Response.redirect(`${url.origin}/sign-in?error=oauth_failed`);
   }
 }

@@ -1,4 +1,5 @@
 import { getOrCreateUser, getUserResumes, getResumeWithAnalysis, deleteResumeForUser } from "../lib/database/index.server";
+import { safeConsole } from "../lib/logging";
 
 export async function loader({ request }: { request: Request }) {
   try {
@@ -23,7 +24,7 @@ export async function loader({ request }: { request: Request }) {
 
     return Response.json({ resumes: resumesWithAnalysis });
   } catch (error) {
-    console.error('Error in resumes API:', error);
+    safeConsole.error('Error in resumes API:', error);
     return Response.json({ 
       error: 'Failed to load resumes',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -53,7 +54,7 @@ export async function action({ request }: { request: Request }) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error('Error deleting resume:', error);
+    safeConsole.error('Error deleting resume:', error);
     return Response.json(
       {
         error: 'Failed to delete resume',

@@ -1,5 +1,6 @@
 import { updateResumeDetailsForUser } from "../lib/database/index.server";
 import { getUserBySession } from "../lib/auth.server";
+import { safeConsole } from "../lib/logging";
 
 function getSessionToken(request: Request): string | null {
   const cookieHeader = request.headers.get("Cookie");
@@ -51,7 +52,7 @@ export async function action({ request }: { request: Request }) {
 
     return Response.json({ success: true, resume: updatedResume });
   } catch (error) {
-    console.error("Error updating resume details:", error);
+    safeConsole.error("Error updating resume details:", error);
     return Response.json(
       {
         error: "Failed to update resume details",

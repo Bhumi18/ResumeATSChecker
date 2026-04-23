@@ -2,6 +2,7 @@
  * Sign Up API Route
  */
 import { createUser, createSession, isEmailTaken } from '../lib/auth.server';
+import { safeConsole } from '../lib/logging';
 
 export async function action({ request }: { request: Request }) {
   try {
@@ -53,7 +54,7 @@ export async function action({ request }: { request: Request }) {
 
     return response;
   } catch (error) {
-    console.error('Sign up error:', error);
+    safeConsole.error('Sign up error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

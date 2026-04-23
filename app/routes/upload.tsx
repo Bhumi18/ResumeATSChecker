@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useUser } from "../lib/auth-context";
+import { safeConsole } from "../lib/logging";
 import type { Route } from "./+types/upload";
 import Navbar from "../components/Navbar";
 import FileUploader from "../components/FileUploader";
@@ -87,7 +88,7 @@ export default function Upload() {
         navigate(`/analyze/${data.resumeId}`);
       }, 1500);
     } catch (err) {
-      console.error("Error analyzing resume:", err);
+      safeConsole.error("Error analyzing resume:", err);
       setError(err instanceof Error ? err.message : "Failed to analyze resume. Please try again.");
       setProgress("");
     } finally {

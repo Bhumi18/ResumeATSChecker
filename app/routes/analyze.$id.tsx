@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useUser } from "../lib/auth-context";
+import { safeConsole } from "../lib/logging";
 import type { Route } from "./+types/analyze.$id";
 import Navbar from "../components/Navbar";
 import ScoreCircle from "../components/ScoreCircle";
@@ -227,7 +228,12 @@ export default function AnalyzeResume() {
         
         const data = await response.json();
         
-        console.log('Resume analysis loaded:', data);
+        // Avoid logging full resume/analysis payloads in the browser console.
+        safeConsole.log('Resume analysis loaded', {
+          resumeId: data?.resume?.id,
+          status: data?.resume?.status,
+          hasAnalysis: Boolean(data?.analysis),
+        });
         
         if (!data.resume) {
           setError("Resume not found");
@@ -246,7 +252,7 @@ export default function AnalyzeResume() {
           }
         }
       } catch (err) {
-        console.error("Error loading resume:", err);
+        safeConsole.error("Error loading resume:", err);
         setError("Failed to load resume analysis");
       } finally {
         setLoading(false);
@@ -285,7 +291,7 @@ export default function AnalyzeResume() {
       setOriginalHtml(htmlResult.value);
       setResumeHtml(htmlResult.value);
     } catch (err) {
-      console.error('Error auto-extracting Word document:', err);
+      safeConsole.error('Error auto-extracting Word document:', err);
       // Silently fail, user can still click Edit button to try again
     }
   };
@@ -329,7 +335,7 @@ export default function AnalyzeResume() {
       
       setIsEditMode(true);
     } catch (err) {
-      console.error('Error extracting text:', err);
+      safeConsole.error('Error extracting text:', err);
       pushBanner(
         {
           kind: 'error',
@@ -358,7 +364,7 @@ export default function AnalyzeResume() {
       setIsEditMode(false);
       
       // Save the edited resume to the system
-      console.log('Saving changes to system...');
+      safeConsole.log('Saving changes to system...');
       try {
         const saveResponse = await fetch('/api/save-resume', {
           method: 'POST',
@@ -378,21 +384,21 @@ export default function AnalyzeResume() {
           } : null);
           setResumeUrl(saveData.resumeFileUrl);
           setSavedToSystem(true);
-          console.log('Resume saved to system');
+          safeConsole.log('Resume saved to system');
         } else {
-          console.error('Failed to save to system:', saveData.error);
+          safeConsole.error('Failed to save to system:', saveData.error);
         }
       } catch (saveErr) {
-        console.error('Error saving to system:', saveErr);
+        safeConsole.error('Error saving to system:', saveErr);
       }
       
       // Re-analyze the resume with the new content
-      console.log('Starting re-analysis...');
+      safeConsole.log('Starting re-analysis...');
       await reAnalyzeEditedResume(editedHtml);
       
-      console.log('Save + re-analysis completed.');
+      safeConsole.log('Save + re-analysis completed.');
     } catch (err) {
-      console.error('Error saving changes:', err);
+      safeConsole.error('Error saving changes:', err);
       pushBanner({
         kind: 'error',
         title: 'Save failed',
@@ -406,7 +412,7 @@ export default function AnalyzeResume() {
   // Re-analyze resume after user edits
   const reAnalyzeEditedResume = async (editedHtml: string) => {
     if (!resume || !id) {
-      console.warn('Cannot re-analyze: missing resume or id');
+      safeConsole.warn('Cannot re-analyze: missing resume or id');
       return;
     }
 
@@ -418,15 +424,14 @@ export default function AnalyzeResume() {
       tempDiv.innerHTML = editedHtml;
       const extractedText = tempDiv.textContent || tempDiv.innerText || '';
 
-      console.log('Re-analyzing edited resume...');
-      console.log('Resume ID:', id);
-      console.log('Extracted text length:', extractedText.length);
-      console.log('Job title:', resume.job_title);
-      console.log('Job description:', resume.job_description?.substring(0, 100) + '...');
+      safeConsole.log('Re-analyzing edited resume...', {
+        resumeId: id,
+        extractedTextLength: extractedText.length,
+      });
       
       // Store previous score for comparison
       const prevScore = resume.overall_score ?? analysis?.ats_score ?? 0;
-      console.log('Previous score:', prevScore);
+      safeConsole.log('Previous score:', prevScore);
       setPreviousScore(prevScore);
 
       // Call the re-analysis API
@@ -443,8 +448,7 @@ export default function AnalyzeResume() {
           reanalyze: true,
         }),
       });
-
-      console.log('Re-analysis response status:', response.status);
+  safeConsole.log('Re-analysis response status:', response.status);
 
       if (!response.ok) {
         const rawBody = await response.text().catch(() => '');
@@ -455,11 +459,10 @@ export default function AnalyzeResume() {
           errorData = {};
         }
 
-        console.error('Re-analysis failed:', {
+        safeConsole.error('Re-analysis failed:', {
           status: response.status,
           statusText: response.statusText,
           errorData,
-          rawBody,
         });
 
         const baseError = String(errorData.error || 'Re-analysis failed');
@@ -475,23 +478,22 @@ export default function AnalyzeResume() {
       }
 
       const result = await response.json();
-      console.log('Re-analysis result:', result);
-
       const derivedAnalysisSource =
         result.analysisSource || result.analysis?.ai_model_used || 'unknown';
       const derivedFallbackUsed =
         Boolean(result.fallbackUsed) ||
         String(derivedAnalysisSource || '').toLowerCase().includes('fallback');
 
-      console.log('Analysis source (client):', {
+      safeConsole.log('Analysis source (client):', {
         analysisSource: derivedAnalysisSource,
         fallbackUsed: derivedFallbackUsed,
-        aiFailureReason: result.aiFailureReason,
       });
 
       if (result.success && result.analysis) {
-        console.log('New ATS score:', result.analysis.ats_score);
-        console.log('New overall score:', result.resume?.overall_score);
+        safeConsole.log('Re-analysis scores updated', {
+          atsScore: result.analysis.ats_score,
+          overallScore: result.resume?.overall_score,
+        });
         
         // Compare with previous analysis to find completed suggestions
         const newCompleted = new Set<string>();
@@ -503,7 +505,6 @@ export default function AnalyzeResume() {
           previousMissing.forEach((keyword: string) => {
             if (!currentMissing.includes(keyword)) {
               newCompleted.add(`keyword:${keyword}`);
-              console.log('Added keyword:', keyword);
             }
           });
         }
@@ -515,27 +516,26 @@ export default function AnalyzeResume() {
           previousMissing.forEach((section: string) => {
             if (!currentMissing.includes(section)) {
               newCompleted.add(`section:${section}`);
-              console.log('Added section:', section);
             }
           });
         }
 
-        console.log('Completed suggestions:', newCompleted.size);
+        safeConsole.log('Completed suggestions:', newCompleted.size);
         setCompletedSuggestions(newCompleted);
         setAnalysis(result.analysis);
         
         // Update resume with new score
         if (result.resume) {
-          console.log('Updating resume state with new score:', result.resume.overall_score);
+          safeConsole.log('Updating resume state with new score:', result.resume.overall_score);
           setResume(result.resume);
         }
         
         // Show score improvement animation
         const newScore = result.resume?.overall_score ?? result.analysis.ats_score ?? 0;
-        console.log(`Score comparison: ${prevScore} -> ${newScore}`);
+        safeConsole.log(`Score comparison: ${prevScore} -> ${newScore}`);
         
         if (newScore > prevScore) {
-          console.log('Score improved; showing animation');
+          safeConsole.log('Score improved; showing animation');
           setShowScoreImprovement(true);
           setTimeout(() => setShowScoreImprovement(false), 3000);
 
@@ -567,12 +567,12 @@ export default function AnalyzeResume() {
           );
         }
 
-        console.log('Re-analysis complete');
+        safeConsole.log('Re-analysis complete');
       } else {
-        console.error('No analysis data in result:', result);
+        safeConsole.error('No analysis data in result');
       }
     } catch (err) {
-      console.error('Error re-analyzing resume:', err);
+      safeConsole.error('Error re-analyzing resume:', err);
       const message = err instanceof Error ? err.message : 'Could not re-analyze your resume. Please try again.';
       pushBanner({
         kind: 'error',
@@ -691,7 +691,7 @@ export default function AnalyzeResume() {
         { autoDismissMs: 7000 }
       );
     } catch (err) {
-      console.error('Error matching resume:', err);
+      safeConsole.error('Error matching resume:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       pushBanner({
         kind: 'error',
@@ -775,7 +775,7 @@ export default function AnalyzeResume() {
         jobDescription: payload.jobDescription,
       });
     } catch (err) {
-      console.error('Error updating job details:', err);
+      safeConsole.error('Error updating job details:', err);
       setJobDetailsError(err instanceof Error ? err.message : 'Could not update job details.');
       pushBanner({
         kind: 'error',
@@ -827,7 +827,7 @@ export default function AnalyzeResume() {
         { autoDismissMs: 5000 }
       );
     } catch (err) {
-      console.error('Error saving resume to system:', err);
+      safeConsole.error('Error saving resume to system:', err);
       pushBanner({
         kind: 'error',
         title: 'Save failed',
@@ -888,7 +888,7 @@ export default function AnalyzeResume() {
         );
       }
     } catch (err) {
-      console.error("Error downloading:", err);
+      safeConsole.error("Error downloading:", err);
       pushBanner({
         kind: 'error',
         title: 'Download failed',

@@ -1,4 +1,5 @@
 import { getResumeWithAnalysis } from "../lib/database/resumes.server";
+import { safeConsole } from "../lib/logging";
 import * as docx from 'docx';
 
 interface TextSegment {
@@ -254,7 +255,7 @@ export async function action({ request }: { request: Request }) {
         const result = await mammoth.convertToHtml({ buffer: fileBuffer });
         htmlContent = result.value;
       } catch (err) {
-        console.error('Error reading original file:', err);
+        safeConsole.error('Error reading original file:', err);
         return Response.json(
           { error: 'Failed to read original resume file' },
           { status: 500 }
@@ -290,7 +291,7 @@ export async function action({ request }: { request: Request }) {
     });
 
   } catch (error) {
-    console.error('Error generating resume:', error);
+    safeConsole.error('Error generating resume:', error);
     return Response.json(
       { error: error instanceof Error ? error.message : 'Failed to generate resume' },
       { status: 500 }

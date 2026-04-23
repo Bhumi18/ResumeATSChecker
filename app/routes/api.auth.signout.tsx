@@ -2,6 +2,7 @@
  * Sign Out API Route
  */
 import { deleteSession } from '../lib/auth.server';
+import { safeConsole } from '../lib/logging';
 
 function getSessionToken(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
@@ -27,7 +28,7 @@ export async function action({ request }: { request: Request }) {
 
     return response;
   } catch (error) {
-    console.error('Sign out error:', error);
+    safeConsole.error('Sign out error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

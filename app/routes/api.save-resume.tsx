@@ -1,6 +1,7 @@
 import { getResumeWithAnalysis } from "../lib/database/index.server";
 import { getUserBySession } from "../lib/auth.server";
 import { execute } from "../lib/neon.server";
+import { safeConsole } from "../lib/logging";
 import * as docx from 'docx';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -184,7 +185,7 @@ export async function action({ request }: { request: Request }) {
       resumeFileName: newDisplayName,
     });
   } catch (error) {
-    console.error('Error saving resume:', error);
+    safeConsole.error('Error saving resume:', error);
     return Response.json({ error: 'Failed to save resume' }, { status: 500 });
   }
 }

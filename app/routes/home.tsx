@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useUser } from "../lib/auth-context";
+import { safeConsole } from "../lib/logging";
 import type { Route } from "./+types/home";
 import Navbar from "../components/Navbar";
 import ResumeCard from "../components/ResumeCard";
@@ -64,10 +65,10 @@ export default function Home() {
         }
 
         const data = await response.json();
-        console.log('📋 Loaded resumes:', data.resumes);
+        safeConsole.log('Loaded resumes', { count: Array.isArray(data?.resumes) ? data.resumes.length : 0 });
         setResumes(data.resumes);
       } catch (err) {
-        console.error("Error loading resumes:", err);
+        safeConsole.error("Error loading resumes:", err);
         setError(err instanceof Error ? err.message : "Failed to load resumes. Please check your database configuration.");
       } finally {
         setLoading(false);
@@ -113,7 +114,7 @@ export default function Home() {
       setResumes((prev) => prev.filter(({ resume }) => resume.id !== resumeId));
       setPendingDeleteResume(null);
     } catch (err) {
-      console.error('Error deleting resume:', err);
+      safeConsole.error('Error deleting resume:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete application');
     } finally {
       setDeletingResumeId(null);
