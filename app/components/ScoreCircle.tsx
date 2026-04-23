@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 
-const ScoreCircle = ({ score = 75 }: { score: number }) => {
+const ScoreCircle = ({ score }: { score: number | null | undefined }) => {
+  const hasScore = typeof score === 'number' && Number.isFinite(score);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -16,6 +17,12 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
   // Animate score on mount with easing
   useEffect(() => {
     setIsVisible(true);
+
+    if (!hasScore) {
+      setAnimatedScore(0);
+      return;
+    }
+
     const duration = 1500;
     const steps = 80;
     let current = 0;
@@ -25,10 +32,10 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
       step++;
       // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - step / steps, 4);
-      current = Math.round(score * easeOutQuart);
+      current = Math.round((score as number) * easeOutQuart);
 
       if (step >= steps) {
-        setAnimatedScore(score);
+        setAnimatedScore(score as number);
         clearInterval(timer);
       } else {
         setAnimatedScore(current);
@@ -36,10 +43,11 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [score]);
+  }, [hasScore, score]);
 
   // Get color based on score
   const getScoreColor = () => {
+    if (!hasScore) return { start: "#6b7280", end: "#9ca3af", glow: "rgba(107, 114, 128, 0.25)" };
     if (score >= 80) return { start: "#059669", end: "#10b981", glow: "rgba(16, 185, 129, 0.4)" };
     if (score >= 60) return { start: "#d97706", end: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)" };
     return { start: "#dc2626", end: "#ef4444", glow: "rgba(239, 68, 68, 0.4)" };
@@ -91,7 +99,7 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
         />
         {/* Gradient definitions */}
         <defs>
-          <linearGradient id={`grad-${score}`} x1="1" y1="0" x2="0" y2="1">
+          <linearGradient id={`grad-${hasScore ? score : 'na'}`} x1="1" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={colors.start}>
               <animate
                 attributeName="stop-color"
@@ -110,7 +118,7 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
             </stop>
           </linearGradient>
           {/* Glow filter */}
-          <filter id={`glow-${score}`} x="-50%" y="-50%" width="200%" height="200%">
+          <filter id={`glow-${hasScore ? score : 'na'}`} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
@@ -123,13 +131,13 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
           cx="50"
           cy="50"
           r={normalizedRadius}
-          stroke={`url(#grad-${score})`}
+          stroke={`url(#grad-${hasScore ? score : 'na'})`}
           strokeWidth={isHovered ? stroke + 2 : stroke}
           fill="transparent"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          filter={isHovered ? `url(#glow-${score})` : "none"}
+          filter={isHovered ? `url(#glow-${hasScore ? score : 'na'})` : "none"}
           className="transition-all duration-300 ease-out"
           style={{
             filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.1))`,
@@ -159,7 +167,7 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
             textShadow: isHovered ? `0 0 10px ${colors.glow}` : "none",
           }}
         >
-          {animatedScore}
+          {hasScore ? animatedScore : '—'}
         </span>
         <span
           className="text-xs text-ink-400 transition-all duration-300"

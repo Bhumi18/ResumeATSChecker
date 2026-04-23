@@ -33,14 +33,15 @@ export default function Home() {
   const [pendingDeleteResume, setPendingDeleteResume] = useState<{ id: string; name: string } | null>(null);
 
   // Calculate stats
+  const completedResumes = resumes.filter(({ resume }) => resume.status === 'completed' && resume.overall_score != null);
   const stats = {
     total: resumes.length,
-    avgScore: resumes.length > 0 
-      ? Math.round(resumes.reduce((sum, { resume }) => sum + (resume.overall_score || 0), 0) / resumes.length)
+    avgScore: completedResumes.length > 0
+      ? Math.round(completedResumes.reduce((sum, { resume }) => sum + (resume.overall_score as number), 0) / completedResumes.length)
       : 0,
     completed: resumes.filter(({ resume }) => resume.status === 'completed').length,
     analyzing: resumes.filter(({ resume }) => resume.status === 'analyzing').length,
-    highScoring: resumes.filter(({ resume }) => (resume.overall_score || 0) >= 80).length,
+    highScoring: resumes.filter(({ resume }) => resume.status === 'completed' && (resume.overall_score ?? 0) >= 80).length,
   };
 
   useEffect(() => {
@@ -349,25 +350,27 @@ export default function Home() {
                         imagePath: resume.resume_thumbnail_url || "/images/pdf.png",
                         resumePath: resume.resume_file_url,
                         feedback: {
-                          overallScore: resume.overall_score || 0,
+                          overallScore: resume.status === 'completed'
+                            ? (resume.overall_score ?? analysis?.ats_score ?? null)
+                            : null,
                           ATS: {
-                            score: analysis?.ats_score || 0,
+                            score: resume.status === 'completed' ? (analysis?.ats_score ?? null) : null,
                             tips: Array.isArray(analysis?.ats_tips) ? analysis.ats_tips as any : []
                           },
                           toneAndStyle: {
-                            score: analysis?.tone_style_score || 0,
+                            score: resume.status === 'completed' ? (analysis?.tone_style_score ?? null) : null,
                             tips: Array.isArray(analysis?.tone_style_tips) ? analysis.tone_style_tips as any : []
                           },
                           content: {
-                            score: analysis?.content_score || 0,
+                            score: resume.status === 'completed' ? (analysis?.content_score ?? null) : null,
                             tips: Array.isArray(analysis?.content_tips) ? analysis.content_tips as any : []
                           },
                           structure: {
-                            score: analysis?.structure_score || 0,
+                            score: resume.status === 'completed' ? (analysis?.structure_score ?? null) : null,
                             tips: Array.isArray(analysis?.structure_tips) ? analysis.structure_tips as any : []
                           },
                           skills: {
-                            score: analysis?.skills_score || 0,
+                            score: resume.status === 'completed' ? (analysis?.skills_score ?? null) : null,
                             tips: Array.isArray(analysis?.skills_tips) ? analysis.skills_tips as any : []
                           },
                         },

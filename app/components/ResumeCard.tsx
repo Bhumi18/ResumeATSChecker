@@ -130,7 +130,7 @@ const ResumeCard: ({
             )}
           </div>
           <div className="flex-shrink-0 transition-all duration-500">
-            <ScoreCircle score={feedback.overallScore} />
+            <ScoreCircle score={status === 'completed' ? feedback.overallScore : null} />
           </div>
         </div>
 

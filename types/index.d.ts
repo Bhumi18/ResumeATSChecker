@@ -57,16 +57,16 @@ interface Resume {
 }
 
 interface Feedback {
-  overallScore: number;
+  overallScore: number | null;
   ATS: {
-    score: number;
+    score: number | null;
     tips: {
       type: "good" | "bad";
       tip: string;
     }[];
   };
   toneAndStyle: {
-    score: number;
+    score: number | null;
     tips: {
       type: "good" | "improve";
       tip: string;
@@ -74,7 +74,7 @@ interface Feedback {
     }[];
   };
   content: {
-    score: number;
+    score: number | null;
     tips: {
       type: "good" | "improve";
       tip: string;
@@ -82,7 +82,7 @@ interface Feedback {
     }[];
   };
   structure: {
-    score: number;
+    score: number | null;
     tips: {
       type: "good" | "improve";
       tip: string;
@@ -90,7 +90,7 @@ interface Feedback {
     }[];
   };
   skills: {
-    score: number;
+    score: number | null;
     tips: {
       type: "good" | "improve";
       tip: string;

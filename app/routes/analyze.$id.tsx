@@ -967,24 +967,28 @@ export default function AnalyzeResume() {
     );
   }
 
-  const getScoreColor = (score: number) => {
+  const getScoreColor = (score: number | null) => {
+    if (score === null) return 'text-ink-400';
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  const getScoreBgColor = (score: number) => {
+  const getScoreBgColor = (score: number | null) => {
+    if (score === null) return 'bg-gray-50 border-gray-200';
     if (score >= 80) return 'bg-green-50 border-green-200';
     if (score >= 60) return 'bg-yellow-50 border-yellow-200';
     return 'bg-red-50 border-red-200';
   };
 
+  const hasAnalysis = Boolean(analysis);
+
   const tabs = [
-    { id: 'ats' as const, label: 'ATS', score: analysis?.ats_score ?? 0 },
-    { id: 'tone' as const, label: 'Tone', score: analysis?.tone_style_score ?? 0 },
-    { id: 'content' as const, label: 'Content', score: analysis?.content_score ?? 0 },
-    { id: 'structure' as const, label: 'Structure', score: analysis?.structure_score ?? 0 },
-    { id: 'skills' as const, label: 'Skills', score: analysis?.skills_score ?? 0 },
+    { id: 'ats' as const, label: 'ATS', score: analysis?.ats_score ?? null },
+    { id: 'tone' as const, label: 'Tone', score: analysis?.tone_style_score ?? null },
+    { id: 'content' as const, label: 'Content', score: analysis?.content_score ?? null },
+    { id: 'structure' as const, label: 'Structure', score: analysis?.structure_score ?? null },
+    { id: 'skills' as const, label: 'Skills', score: analysis?.skills_score ?? null },
   ];
 
   const getTipsForTab = (): any[] => {
@@ -1013,18 +1017,22 @@ export default function AnalyzeResume() {
     }
   };
 
-  const overallScore = resume.overall_score ?? analysis?.ats_score ?? 0;
+  const overallScore: number | null = hasAnalysis
+    ? (resume.overall_score ?? analysis?.ats_score ?? 0)
+    : null;
   const isWordDocument =
     resume.resume_file_name?.toLowerCase().endsWith('.doc') ||
     resume.resume_file_name?.toLowerCase().endsWith('.docx');
   const canEditResume = Boolean(isWordDocument && resumeUrl);
 
   const scoreMeta =
-    overallScore >= 80
-      ? { label: 'Strong', iconSrc: '/icons/ats-good.svg' }
-      : overallScore >= 60
-        ? { label: 'Moderate', iconSrc: '/icons/ats-warning.svg' }
-        : { label: 'Needs work', iconSrc: '/icons/ats-bad.svg' };
+    overallScore === null
+      ? { label: 'Unavailable', iconSrc: '/icons/ats-warning.svg' }
+      : overallScore >= 80
+        ? { label: 'Strong', iconSrc: '/icons/ats-good.svg' }
+        : overallScore >= 60
+          ? { label: 'Moderate', iconSrc: '/icons/ats-warning.svg' }
+          : { label: 'Needs work', iconSrc: '/icons/ats-bad.svg' };
 
   const bannerUi =
     banner?.kind === 'success'
@@ -1225,7 +1233,7 @@ export default function AnalyzeResume() {
                           isReanalyzing ? 'animate-pulse' : ''
                         }`}
                       >
-                        {overallScore}
+                        {overallScore ?? '—'}
                       </span>
                       <span className="text-sm text-ink-500 mb-1">/100</span>
                       <span className="mb-1 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/70 border border-gray-200 text-[11px] font-semibold text-ink-700 hover:scale-105 transition-transform">
@@ -1234,7 +1242,7 @@ export default function AnalyzeResume() {
                       </span>
                     </div>
 
-                    {previousScore !== null && (
+                    {previousScore !== null && overallScore !== null && (
                       <p className="text-xs text-ink-500 mt-2">
                         Previous: <span className="font-semibold text-ink-700">{previousScore}</span>
                         {overallScore !== previousScore && (
@@ -1262,23 +1270,37 @@ export default function AnalyzeResume() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {tabs.map((tab, index) => {
-                  const percent = Math.max(0, Math.min(100, tab.score));
+                  const score = tab.score;
+                  const percent = Math.max(0, Math.min(100, score ?? 0));
 
                   return (
                     <div
                       key={tab.id}
-                      className="rounded-xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm cursor-pointer group hover:shadow-lg hover:border-gray-300 transition-all duration-300 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-2"
+                      className={`rounded-xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 ${
+                        hasAnalysis ? 'cursor-pointer group hover:shadow-lg hover:border-gray-300 hover:-translate-y-1' : 'cursor-default opacity-80'
+                      }`}
                       style={{ animationDelay: `${index * 0.1}s` }}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        if (!hasAnalysis) return;
+                        setActiveTab(tab.id);
+                      }}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-xs text-ink-500 group-hover:text-ink-700 transition-colors">{tab.label}</p>
-                        <p className={`text-sm font-bold ${getScoreColor(tab.score)} transition-transform duration-300 group-hover:scale-125`}>{tab.score}</p>
+                        <p className={`text-sm font-bold ${getScoreColor(score)} transition-transform duration-300 group-hover:scale-125`}>
+                          {score ?? '—'}
+                        </p>
                       </div>
                       <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all duration-700 ease-out ${
-                            tab.score >= 80 ? 'bg-green-600' : tab.score >= 60 ? 'bg-yellow-500' : 'bg-red-600'
+                            score === null
+                              ? 'bg-gray-300'
+                              : score >= 80
+                                ? 'bg-green-600'
+                                : score >= 60
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-600'
                           }`}
                           style={{ width: `${percent}%` }}
                         />
@@ -1428,8 +1450,17 @@ export default function AnalyzeResume() {
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <img src="/icons/info.svg" alt="" aria-hidden className="mx-auto w-10 h-10 opacity-70" />
-                      <p className="mt-4 text-ink-500">No suggestions available for this category.</p>
+                      <img
+                        src={resume.status === 'failed' ? '/icons/warning.svg' : '/icons/info.svg'}
+                        alt=""
+                        aria-hidden
+                        className="mx-auto w-10 h-10 opacity-70"
+                      />
+                      <p className="mt-4 text-ink-500">
+                        {resume.status === 'failed'
+                          ? 'Analysis failed for this resume. Please try again.'
+                          : 'No suggestions available for this category.'}
+                      </p>
                     </div>
                   )}
 
