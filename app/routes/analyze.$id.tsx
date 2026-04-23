@@ -1049,10 +1049,44 @@ export default function AnalyzeResume() {
               </div>
 
               <div
-                className={`rounded-2xl border px-5 py-4 ${getScoreBgColor(overallScore)} ${
+                className={`relative rounded-2xl border px-5 py-4 ${getScoreBgColor(overallScore)} ${
                   showScoreImprovement ? 'ring-2 ring-green-200' : ''
-                } shadow-sm hover:shadow-lg transition-all duration-500 cursor-default group`}
+                } shadow-sm hover:shadow-lg transition-all duration-500 cursor-default group ${
+                  isReanalyzing ? 'cursor-wait' : ''
+                }`}
+                aria-busy={isReanalyzing}
               >
+                {isReanalyzing && (
+                  <div
+                    className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white/80 shadow-sm">
+                      <svg className="w-6 h-6 text-ink-500 animate-spin" viewBox="0 0 24 24" aria-hidden>
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-ink-700">Re-analyzing…</p>
+                        <p className="text-xs text-ink-500">Updating scores and suggestions</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-4">
                   <div className="hidden sm:flex p-2 bg-white/70 border border-gray-200 rounded-2xl transition-transform duration-300 group-hover:scale-105">
                     <ScoreCircle score={overallScore} />
@@ -1060,22 +1094,18 @@ export default function AnalyzeResume() {
                   <div className="min-w-0">
                     <p className="text-xs uppercase tracking-wider text-ink-500">Overall score</p>
                     <div className="flex flex-wrap items-end gap-2 mt-2">
-                      <span className={`text-4xl font-bold leading-none ${getScoreColor(overallScore)} transition-transform duration-300 group-hover:scale-110`}>{overallScore}</span>
+                      <span
+                        className={`text-4xl font-bold leading-none ${getScoreColor(overallScore)} transition-transform duration-300 group-hover:scale-110 ${
+                          isReanalyzing ? 'animate-pulse' : ''
+                        }`}
+                      >
+                        {overallScore}
+                      </span>
                       <span className="text-sm text-ink-500 mb-1">/100</span>
                       <span className="mb-1 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/70 border border-gray-200 text-[11px] font-semibold text-ink-700 hover:scale-105 transition-transform">
                         <img src={scoreMeta.iconSrc} alt="" aria-hidden className="w-4 h-4" />
                         {scoreMeta.label}
                       </span>
-                      {isReanalyzing && (
-                        <svg className="w-4 h-4 text-ink-400 animate-spin mb-1" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                      )}
                     </div>
 
                     {previousScore !== null && (
@@ -1582,7 +1612,8 @@ export default function AnalyzeResume() {
                             <button
                               type="button"
                               onClick={() => setIsEditMode(false)}
-                              className="px-4 py-2 bg-gray-200 text-ink-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 text-sm w-full sm:w-auto"
+                              disabled={saving || isReanalyzing}
+                              className="px-4 py-2 bg-gray-200 text-ink-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-gray-200 text-sm w-full sm:w-auto"
                             >
                               Cancel
                             </button>
@@ -1590,7 +1621,7 @@ export default function AnalyzeResume() {
                               type="button"
                               onClick={handleSaveChanges}
                               disabled={saving || isReanalyzing}
-                              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all duration-200 disabled:opacity-50 text-sm flex items-center justify-center gap-2 w-full sm:w-auto"
+                              className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-amber-600 text-sm flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
                               {isReanalyzing ? (
                                 <>
