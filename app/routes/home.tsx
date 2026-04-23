@@ -28,7 +28,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'analyzing' | 'pending'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'failed'>('all');
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null);
   const [pendingDeleteResume, setPendingDeleteResume] = useState<{ id: string; name: string } | null>(null);
 
@@ -237,7 +237,7 @@ export default function Home() {
 
                   {/* Filter Buttons */}
                   <div className="flex gap-2 flex-wrap">
-                    {(['all', 'completed', 'analyzing', 'pending'] as const).map((status) => (
+                    {(['all', 'completed', 'failed'] as const).map((status) => (
                       <button
                         key={status}
                         onClick={() => setFilterStatus(status)}
