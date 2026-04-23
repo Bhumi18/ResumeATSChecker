@@ -87,6 +87,132 @@ export default function AnalyzeResume() {
   }, []);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const busy = saving || isReanalyzing;
+
+    const existing = document.getElementById('global-busy-overlay') as HTMLDivElement | null;
+    let overlay = existing;
+
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-busy-overlay';
+      overlay.className = 'global-busy-overlay';
+      overlay.style.display = 'none';
+      overlay.setAttribute('role', 'status');
+      overlay.setAttribute('aria-live', 'polite');
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'global-busy-backdrop';
+      backdrop.setAttribute('aria-hidden', 'true');
+
+      const card = document.createElement('div');
+      card.className = 'global-busy-card';
+
+      const inner = document.createElement('div');
+      inner.className = 'global-busy-card-inner';
+
+      const row = document.createElement('div');
+      row.className = 'global-busy-row';
+
+      const icon = document.createElement('div');
+      icon.className = 'global-busy-icon';
+
+      const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      spinner.setAttribute('viewBox', '0 0 24 24');
+      spinner.setAttribute('aria-hidden', 'true');
+      spinner.setAttribute('class', 'w-6 h-6 text-ink-600 animate-spin');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('class', 'opacity-25');
+      circle.setAttribute('cx', '12');
+      circle.setAttribute('cy', '12');
+      circle.setAttribute('r', '10');
+      circle.setAttribute('stroke', 'currentColor');
+      circle.setAttribute('stroke-width', '4');
+      circle.setAttribute('fill', 'none');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'opacity-75');
+      path.setAttribute('fill', 'currentColor');
+      path.setAttribute(
+        'd',
+        'M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+      );
+      spinner.appendChild(circle);
+      spinner.appendChild(path);
+      icon.appendChild(spinner);
+
+      const textWrap = document.createElement('div');
+      textWrap.className = 'min-w-0';
+
+      const title = document.createElement('h3');
+      title.className = 'global-busy-title';
+      title.dataset.role = 'busy-title';
+
+      const subtitle = document.createElement('p');
+      subtitle.className = 'global-busy-subtitle';
+      subtitle.dataset.role = 'busy-subtitle';
+
+      const footnote = document.createElement('p');
+      footnote.className = 'global-busy-footnote';
+      footnote.dataset.role = 'busy-footnote';
+
+      textWrap.appendChild(title);
+      textWrap.appendChild(subtitle);
+      textWrap.appendChild(footnote);
+
+      row.appendChild(icon);
+      row.appendChild(textWrap);
+
+      const progress = document.createElement('div');
+      progress.className = 'global-busy-progress';
+      progress.setAttribute('aria-hidden', 'true');
+      const progressInner = document.createElement('div');
+      progress.appendChild(progressInner);
+
+      inner.appendChild(row);
+      inner.appendChild(progress);
+      card.appendChild(inner);
+
+      overlay.appendChild(backdrop);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+    }
+
+    const titleNode = overlay.querySelector('[data-role="busy-title"]');
+    const subtitleNode = overlay.querySelector('[data-role="busy-subtitle"]');
+    const footnoteNode = overlay.querySelector('[data-role="busy-footnote"]');
+
+    if (busy) {
+      const titleText = isReanalyzing ? 'Re-analyzing your resume…' : 'Saving your changes…';
+      const subtitleText = isReanalyzing
+        ? 'Updating scores, keywords, and suggestions.'
+        : 'Persisting your edits and preparing re-analysis.';
+      const footnoteText = 'This usually takes 10–15 seconds';
+
+      if (titleNode) titleNode.textContent = titleText;
+      if (subtitleNode) subtitleNode.textContent = subtitleText;
+      if (footnoteNode) footnoteNode.textContent = footnoteText;
+
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-label', titleText);
+      document.body.style.overflow = 'hidden';
+    } else {
+      overlay.style.display = 'none';
+      overlay.removeAttribute('aria-label');
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      const current = document.getElementById('global-busy-overlay') as HTMLDivElement | null;
+      if (current) {
+        current.style.display = 'none';
+        current.removeAttribute('aria-label');
+      }
+      document.body.style.overflow = '';
+    };
+  }, [saving, isReanalyzing]);
+
+  useEffect(() => {
     async function loadResumeAnalysis() {
       if (!id) return;
 
