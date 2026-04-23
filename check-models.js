@@ -1,13 +1,14 @@
 // Quick script to check available Gemini models
+import 'dotenv/config';
 import { readFileSync } from 'fs';
 
 // Read API key from .env file
-let apiKey = process.env.VITE_GOOGLE_AI_STUDIO_API_KEY;
+let apiKey = process.env.GOOGLE_AI_STUDIO_API_KEY;
 
 if (!apiKey) {
   try {
     const envFile = readFileSync('.env', 'utf-8');
-    const match = envFile.match(/VITE_GOOGLE_AI_STUDIO_API_KEY=(.+)/);
+    const match = envFile.match(/GOOGLE_AI_STUDIO_API_KEY=(.+)/);
     if (match) {
       apiKey = match[1].trim();
     }
@@ -17,7 +18,7 @@ if (!apiKey) {
 }
 
 if (!apiKey) {
-  console.error('❌ VITE_GOOGLE_AI_STUDIO_API_KEY not found in .env file');
+  console.error('❌ GOOGLE_AI_STUDIO_API_KEY not found in .env file');
   process.exit(1);
 }
 

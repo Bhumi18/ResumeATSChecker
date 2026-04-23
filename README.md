@@ -115,10 +115,9 @@ Create a `.env` file:
 # Database
 DATABASE_URL=your-neon-database-url
 
-# AI Provider (choose one)
-VITE_OPENAI_API_KEY=your-openai-key
-# OR
-VITE_GOOGLE_AI_API_KEY=your-gemini-key
+# Google AI Studio (Gemini) - server-side only
+# IMPORTANT: do NOT use `VITE_*` for secrets, as those can be exposed to the browser.
+GOOGLE_AI_STUDIO_API_KEY=your-gemini-key
 ```
 
 3. **Set up the database**

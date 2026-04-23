@@ -1,3 +1,4 @@
+import "../lib/env.server";
 import { createResume, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { uploadResumeFile } from "../lib/storage.server";
 import { analyzeResume } from "../lib/ai-analyzer";
@@ -51,7 +52,7 @@ export async function action({ request }: { request: Request }) {
     } catch (aiError: any) {
       console.error('❌ Upload AI analysis failed:', aiError);
       try {
-        await updateResumeStatus(resume.id, 'failed', null);
+        await updateResumeStatus(resume.id, 'failed', undefined);
       } catch (statusError) {
         console.error('❌ Failed to mark resume as failed:', statusError);
       }

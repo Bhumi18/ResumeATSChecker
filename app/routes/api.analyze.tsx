@@ -1,3 +1,4 @@
+import "../lib/env.server";
 import { getResumeWithAnalysis, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { analyzeResumeText } from "../lib/ai-analyzer";
 

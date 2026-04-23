@@ -44,15 +44,9 @@ const GEMINI_MODELS = {
 } as const;
 
 function getGoogleAiStudioApiKey(): string | undefined {
-  const nodeKey =
-    typeof process !== 'undefined' && typeof (process as any).env !== 'undefined'
-      ? ((process as any).env.GOOGLE_AI_STUDIO_API_KEY as string | undefined) ||
-        ((process as any).env.VITE_GOOGLE_AI_STUDIO_API_KEY as string | undefined)
-      : undefined;
-
-  const viteKey = import.meta.env.VITE_GOOGLE_AI_STUDIO_API_KEY as string | undefined;
-
-  return nodeKey || viteKey;
+  return typeof process !== 'undefined' && typeof (process as any).env !== 'undefined'
+    ? ((process as any).env.GOOGLE_AI_STUDIO_API_KEY as string | undefined)
+    : undefined;
 }
 
 function truncateForPrompt(text: string, maxChars: number): { value: string; truncated: boolean } {
@@ -1187,7 +1181,7 @@ async function analyzeWithGeminiFlash(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1316,7 +1310,7 @@ async function analyzeWithGeminiPro(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1446,7 +1440,7 @@ export async function analyzeResumeFast(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1484,7 +1478,7 @@ export async function analyzeResumePremium(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1516,7 +1510,7 @@ export async function analyzeResume(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1562,7 +1556,7 @@ export async function analyzeResumeText(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1774,7 +1768,7 @@ export async function generateOptimizedResume(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
@@ -1855,7 +1849,7 @@ export async function reAnalyzeResume(
   
   if (!apiKey) {
     throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY (server) or VITE_GOOGLE_AI_STUDIO_API_KEY (dev)'
+      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
     );
   }
 
