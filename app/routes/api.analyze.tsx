@@ -1,7 +1,16 @@
 import "../lib/env.server";
 import { getResumeWithAnalysis, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
-import { analyzeResumeText } from "../lib/ai-analyzer";
+import { analyzeResumeText, extractTextFromFile } from "../lib/ai-analyzer";
 import { safeConsole } from "../lib/logging";
+
+function guessMimeTypeFromFileName(fileName: string): string {
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith('.pdf')) return 'application/pdf';
+  if (lower.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  if (lower.endsWith('.doc')) return 'application/msword';
+  if (lower.endsWith('.txt')) return 'text/plain';
+  return 'application/octet-stream';
+}
 
 export async function loader({ request }: { request: Request }) {
   try {
@@ -39,14 +48,57 @@ export async function loader({ request }: { request: Request }) {
 export async function action({ request }: { request: Request }) {
   try {
     const body = await request.json();
-    const { resumeId, resumeText, jobDescription, jobTitle } = body;
+    const { resumeId } = body || {};
+    let { resumeText, jobDescription, jobTitle } = body || {};
 
     safeConsole.log('🔄 API action called for re-analysis');
     safeConsole.log('📝 Resume ID:', resumeId);
     safeConsole.log('📄 Text length:', resumeText?.length);
 
-    if (!resumeId || !resumeText) {
-      safeConsole.error('❌ Missing required fields');
+    if (!resumeId) {
+      safeConsole.error('❌ Missing resumeId');
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Allow retry from stored resume file when resumeText isn't provided.
+    if (!resumeText) {
+      const existing = await getResumeWithAnalysis(String(resumeId));
+      if (!existing.resume) {
+        return Response.json({ error: 'Resume not found' }, { status: 404 });
+      }
+
+      const resumeUrl = existing.resume.resume_file_url;
+      if (!resumeUrl) {
+        return Response.json({ error: 'Resume file URL missing' }, { status: 400 });
+      }
+
+      // If the client didn't provide job details, fall back to stored values.
+      jobTitle = jobTitle || existing.resume.job_title || '';
+      jobDescription = jobDescription || existing.resume.job_description || '';
+
+      const absoluteUrl = new URL(resumeUrl, request.url);
+      safeConsole.log('📥 Fetching resume file for retry analysis:', absoluteUrl.toString());
+
+      const fileResponse = await fetch(absoluteUrl);
+      if (!fileResponse.ok) {
+        const bodyText = await fileResponse.text().catch(() => '');
+        throw new Error(
+          `Failed to fetch resume file (status ${fileResponse.status}). ${bodyText ? `Details: ${bodyText}` : ''}`.trim()
+        );
+      }
+
+      const arrayBuffer = await fileResponse.arrayBuffer();
+      const fallbackName = absoluteUrl.pathname.split('/').pop() || 'resume';
+      const fileName = existing.resume.resume_file_name || fallbackName;
+      const mimeType = guessMimeTypeFromFileName(fileName);
+
+      const file = new File([new Uint8Array(arrayBuffer)], fileName, { type: mimeType });
+      resumeText = await extractTextFromFile(file);
+      safeConsole.log('📄 Extracted text length (retry):', resumeText?.length);
+    }
+
+    if (!resumeText) {
+      safeConsole.error('❌ Missing resumeText');
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 

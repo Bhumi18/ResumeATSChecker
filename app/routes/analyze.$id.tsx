@@ -584,6 +584,83 @@ export default function AnalyzeResume() {
     }
   };
 
+  const retryAnalyzeFromStoredFile = async () => {
+    if (!id || !resume) {
+      pushBanner({
+        kind: 'error',
+        title: 'Resume unavailable',
+        message: 'Could not find this resume record to analyze.',
+      });
+      return;
+    }
+
+    try {
+      setIsReanalyzing(true);
+      setPreviousScore(resume.overall_score ?? null);
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeId: id,
+          jobDescription: resume.job_description || '',
+          jobTitle: resume.job_title || '',
+          reanalyze: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const rawBody = await response.text().catch(() => '');
+        let errorData: any = {};
+        try {
+          errorData = rawBody ? JSON.parse(rawBody) : {};
+        } catch {
+          errorData = {};
+        }
+
+        const baseError = String(errorData.error || 'Re-analysis failed');
+        const details = String(errorData.details || rawBody || '').trim();
+        const hint = String(errorData.hint || '').trim();
+        const message = [
+          details ? `${baseError}: ${details}` : baseError,
+          hint ? `Hint: ${hint}` : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        throw new Error(message);
+      }
+
+      const result = await response.json();
+      if (result.success && result.analysis) {
+        setCompletedSuggestions(new Set());
+        setAnalysis(result.analysis);
+        if (result.resume) setResume(result.resume);
+
+        pushBanner(
+          {
+            kind: 'success',
+            title: 'Analysis restarted',
+            message: 'Your resume was analyzed successfully.',
+          },
+          { autoDismissMs: 5000 }
+        );
+      } else {
+        throw new Error('No analysis data returned');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not re-analyze your resume. Please try again.';
+      pushBanner({
+        kind: 'error',
+        title: 'Re-analysis failed',
+        message,
+      });
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
   const handleMatchResume = async (overrideDetails?: {
     companyName?: string;
     jobTitle: string;
@@ -1450,17 +1527,45 @@ export default function AnalyzeResume() {
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <img
-                        src={resume.status === 'failed' ? '/icons/warning.svg' : '/icons/info.svg'}
-                        alt=""
-                        aria-hidden
-                        className="mx-auto w-10 h-10 opacity-70"
-                      />
-                      <p className="mt-4 text-ink-500">
-                        {resume.status === 'failed'
-                          ? 'Analysis failed for this resume. Please try again.'
-                          : 'No suggestions available for this category.'}
-                      </p>
+                      {resume.status === 'failed' ? (
+                        <>
+                          <div className="mx-auto max-w-md p-4 rounded-xl border border-red-200 bg-red-50">
+                            <div className="flex items-start gap-3">
+                              <img
+                                src="/icons/warning.svg"
+                                alt=""
+                                aria-hidden
+                                className="w-8 h-8 opacity-80"
+                              />
+                              <div className="text-left">
+                                <p className="font-semibold text-red-900">Analysis failed</p>
+                                <p className="mt-1 text-sm text-red-800">We couldn’t generate recommendations for this resume.</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={retryAnalyzeFromStoredFile}
+                              disabled={isReanalyzing}
+                              className="px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {isReanalyzing ? 'Trying again…' : 'Try again'}
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <img
+                            src="/icons/info.svg"
+                            alt=""
+                            aria-hidden
+                            className="mx-auto w-10 h-10 opacity-70"
+                          />
+                          <p className="mt-4 text-ink-500">No suggestions available for this category.</p>
+                        </>
+                      )}
                     </div>
                   )}
 
