@@ -145,7 +145,7 @@ export async function action({ request }: { request: Request }) {
     }
 
     // Get the resume and verify ownership
-    const { resume } = await getResumeWithAnalysis(resumeId);
+    const { resume } = await getResumeWithAnalysis(resumeId, authUser.id);
     if (!resume) {
       return Response.json({ error: 'Resume not found' }, { status: 404 });
     }
@@ -175,8 +175,10 @@ export async function action({ request }: { request: Request }) {
 
     // Update the database record with new file URL and name
     await execute(
-      `UPDATE resumes SET resume_file_url = $1, resume_file_name = $2, updated_at = NOW() WHERE id = $3`,
-      [publicPath, newDisplayName, resumeId]
+      `UPDATE resumes
+       SET resume_file_url = $1, resume_file_name = $2, updated_at = NOW()
+       WHERE id = $3 AND user_id = $4`,
+      [publicPath, newDisplayName, resumeId, authUser.id]
     );
 
     return Response.json({

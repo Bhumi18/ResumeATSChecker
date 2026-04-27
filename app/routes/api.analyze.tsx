@@ -1,19 +1,30 @@
 import "../lib/env.server";
 import { getResumeWithAnalysis, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
-import { analyzeResumeText, extractTextFromFile } from "../lib/ai-analyzer";
+import { analyzeResumeText } from "../lib/ai-analyzer";
+import { getUserBySession } from "../lib/auth.server";
 import { safeConsole } from "../lib/logging";
 
-function guessMimeTypeFromFileName(fileName: string): string {
-  const lower = fileName.toLowerCase();
-  if (lower.endsWith('.pdf')) return 'application/pdf';
-  if (lower.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-  if (lower.endsWith('.doc')) return 'application/msword';
-  if (lower.endsWith('.txt')) return 'text/plain';
-  return 'application/octet-stream';
+function getSessionToken(request: Request): string | null {
+  const cookieHeader = request.headers.get("Cookie");
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+  const sessionCookie = cookies.find((cookie) => cookie.startsWith("session="));
+  return sessionCookie ? sessionCookie.split("=")[1] : null;
 }
 
 export async function loader({ request }: { request: Request }) {
   try {
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const user = await getUserBySession(sessionToken);
+    if (!user) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const url = new URL(request.url);
     const resumeId = url.searchParams.get('id');
 
@@ -21,7 +32,7 @@ export async function loader({ request }: { request: Request }) {
       return Response.json({ error: 'Missing resume ID' }, { status: 400 });
     }
 
-    const data = await getResumeWithAnalysis(resumeId);
+    const data = await getResumeWithAnalysis(resumeId, user.id);
 
     if (!data.resume) {
       return Response.json({ error: 'Resume not found' }, { status: 404 });
@@ -47,59 +58,31 @@ export async function loader({ request }: { request: Request }) {
 // POST handler for re-analysis
 export async function action({ request }: { request: Request }) {
   try {
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const user = await getUserBySession(sessionToken);
+    if (!user) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { resumeId } = body || {};
-    let { resumeText, jobDescription, jobTitle } = body || {};
+    const { resumeId, resumeText, jobDescription, jobTitle } = body;
 
     safeConsole.log('🔄 API action called for re-analysis');
     safeConsole.log('📝 Resume ID:', resumeId);
     safeConsole.log('📄 Text length:', resumeText?.length);
 
-    if (!resumeId) {
-      safeConsole.error('❌ Missing resumeId');
+    if (!resumeId || !resumeText) {
+      safeConsole.error('❌ Missing required fields');
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Allow retry from stored resume file when resumeText isn't provided.
-    if (!resumeText) {
-      const existing = await getResumeWithAnalysis(String(resumeId));
-      if (!existing.resume) {
-        return Response.json({ error: 'Resume not found' }, { status: 404 });
-      }
-
-      const resumeUrl = existing.resume.resume_file_url;
-      if (!resumeUrl) {
-        return Response.json({ error: 'Resume file URL missing' }, { status: 400 });
-      }
-
-      // If the client didn't provide job details, fall back to stored values.
-      jobTitle = jobTitle || existing.resume.job_title || '';
-      jobDescription = jobDescription || existing.resume.job_description || '';
-
-      const absoluteUrl = new URL(resumeUrl, request.url);
-      safeConsole.log('📥 Fetching resume file for retry analysis:', absoluteUrl.toString());
-
-      const fileResponse = await fetch(absoluteUrl);
-      if (!fileResponse.ok) {
-        const bodyText = await fileResponse.text().catch(() => '');
-        throw new Error(
-          `Failed to fetch resume file (status ${fileResponse.status}). ${bodyText ? `Details: ${bodyText}` : ''}`.trim()
-        );
-      }
-
-      const arrayBuffer = await fileResponse.arrayBuffer();
-      const fallbackName = absoluteUrl.pathname.split('/').pop() || 'resume';
-      const fileName = existing.resume.resume_file_name || fallbackName;
-      const mimeType = guessMimeTypeFromFileName(fileName);
-
-      const file = new File([new Uint8Array(arrayBuffer)], fileName, { type: mimeType });
-      resumeText = await extractTextFromFile(file);
-      safeConsole.log('📄 Extracted text length (retry):', resumeText?.length);
-    }
-
-    if (!resumeText) {
-      safeConsole.error('❌ Missing resumeText');
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    const existingResume = await getResumeWithAnalysis(resumeId, user.id);
+    if (!existingResume.resume) {
+      return Response.json({ error: 'Resume not found' }, { status: 404 });
     }
 
     const cleanedResumeText = String(resumeText).trim();
@@ -171,7 +154,7 @@ export async function action({ request }: { request: Request }) {
     // Save the new analysis to database
     safeConsole.log('💾 Saving analysis to database...');
     try {
-      const saved = await saveResumeAnalysis(resumeId, {
+      const saved = await saveResumeAnalysis(resumeId, user.id, {
         atsScore: analysis.atsScore,
         atsTips: analysis.atsTips,
         toneStyleScore: analysis.toneStyleScore,
@@ -201,7 +184,7 @@ export async function action({ request }: { request: Request }) {
     // Update resume status and score
     safeConsole.log('🔄 Updating resume status...');
     try {
-      await updateResumeStatus(resumeId, 'completed', overallScore);
+      await updateResumeStatus(resumeId, user.id, 'completed', overallScore);
       safeConsole.log('✅ Resume status updated');
     } catch (statusError: any) {
       safeConsole.error('❌ Status update failed:', statusError);
@@ -210,7 +193,7 @@ export async function action({ request }: { request: Request }) {
 
     // Fetch updated data
     safeConsole.log('📥 Fetching updated data...');
-    const updatedData = await getResumeWithAnalysis(resumeId);
+    const updatedData = await getResumeWithAnalysis(resumeId, user.id);
 
     safeConsole.log('✅ Re-analysis complete!');
     safeConsole.log('📤 Returning updated data with score:', updatedData.resume?.overall_score);

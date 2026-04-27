@@ -60,14 +60,14 @@ export async function getUserResumes(userId: string): Promise<Resume[]> {
 /**
  * Get a single resume with its analysis
  */
-export async function getResumeWithAnalysis(resumeId: string): Promise<{
+export async function getResumeWithAnalysis(resumeId: string, userId: string): Promise<{
   resume: Resume | null;
   analysis: ResumeAnalysis | null;
 }> {
   try {
     const resume = await queryOne<Resume>(
-      `SELECT * FROM resumes WHERE id = $1`,
-      [resumeId]
+      `SELECT * FROM resumes WHERE id = $1 AND user_id = $2`,
+      [resumeId, userId]
     );
 
     if (!resume) {
@@ -94,22 +94,31 @@ export async function getResumeWithAnalysis(resumeId: string): Promise<{
  */
 export async function updateResumeStatus(
   resumeId: string,
+  userId: string,
   status: 'pending' | 'analyzing' | 'completed' | 'failed',
   overallScore?: number
 ): Promise<boolean> {
   try {
-    let query: string;
-    let params: any[];
-
     if (overallScore !== undefined) {
-      query = `UPDATE resumes SET status = $1, overall_score = $2, updated_at = NOW() WHERE id = $3`;
-      params = [status, overallScore, resumeId];
-    } else {
-      query = `UPDATE resumes SET status = $1, updated_at = NOW() WHERE id = $2`;
-      params = [status, resumeId];
+      const updated = await queryOne<{ id: string }>(
+        `UPDATE resumes
+         SET status = $1, overall_score = $2, updated_at = NOW()
+         WHERE id = $3 AND user_id = $4
+         RETURNING id`,
+        [status, overallScore, resumeId, userId]
+      );
+      return Boolean(updated);
     }
 
-    return await execute(query, params);
+    const updated = await queryOne<{ id: string }>(
+      `UPDATE resumes
+       SET status = $1, updated_at = NOW()
+       WHERE id = $2 AND user_id = $3
+       RETURNING id`,
+      [status, resumeId, userId]
+    );
+
+    return Boolean(updated);
   } catch (error) {
     safeConsole.error('Error in updateResumeStatus:', error);
     return false;
@@ -139,10 +148,11 @@ export async function deleteResumeForUser(
   userId: string
 ): Promise<boolean> {
   try {
-    return await execute(
-      `DELETE FROM resumes WHERE id = $1 AND user_id = $2`,
+    const deleted = await queryOne<{ id: string }>(
+      `DELETE FROM resumes WHERE id = $1 AND user_id = $2 RETURNING id`,
       [resumeId, userId]
     );
+    return Boolean(deleted);
   } catch (error) {
     safeConsole.error('Error in deleteResumeForUser:', error);
     return false;
@@ -191,6 +201,7 @@ export async function updateResumeDetailsForUser(
  */
 export async function saveResumeAnalysis(
   resumeId: string,
+  userId: string,
   analysisData: {
     atsScore: number;
     atsTips: any[];
@@ -210,6 +221,15 @@ export async function saveResumeAnalysis(
   }
 ): Promise<boolean> {
   try {
+    const ownedResume = await queryOne<{ id: string }>(
+      `SELECT id FROM resumes WHERE id = $1 AND user_id = $2`,
+      [resumeId, userId]
+    );
+
+    if (!ownedResume) {
+      return false;
+    }
+
     await execute(
       `INSERT INTO resume_analysis (
         resume_id, ats_score, ats_tips, tone_style_score, tone_style_tips,
@@ -266,7 +286,7 @@ export async function saveResumeAnalysis(
     );
 
     // Update resume with overall score and status
-    await updateResumeStatus(resumeId, 'completed', overallScore);
+    await updateResumeStatus(resumeId, userId, 'completed', overallScore);
 
     return true;
   } catch (error) {

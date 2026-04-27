@@ -1,15 +1,29 @@
-import { getOrCreateUser, getUserResumes, getResumeWithAnalysis, deleteResumeForUser } from "../lib/database/index.server";
+import { getUserResumes, getResumeWithAnalysis, deleteResumeForUser } from "../lib/database/index.server";
+import { getUserBySession } from "../lib/auth.server";
 import { safeConsole } from "../lib/logging";
+
+function getSessionToken(request: Request): string | null {
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
+  const sessionCookie = cookies.find((cookie) => cookie.startsWith('session='));
+  return sessionCookie ? sessionCookie.split('=')[1] : null;
+}
 
 export async function loader({ request }: { request: Request }) {
   try {
-    // Get user ID from query params
-    const url = new URL(request.url);
-    const userId = url.searchParams.get('userId');
-
-    if (!userId) {
-      return Response.json({ error: 'Missing user ID' }, { status: 400 });
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
+
+    const user = await getUserBySession(sessionToken);
+    if (!user) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const userId = user.id;
 
     // Get user resumes
     const userResumes = await getUserResumes(userId);
@@ -17,7 +31,7 @@ export async function loader({ request }: { request: Request }) {
     // Get analysis for each resume
     const resumesWithAnalysis = await Promise.all(
       userResumes.map(async (resume) => {
-        const { analysis } = await getResumeWithAnalysis(resume.id);
+        const { analysis } = await getResumeWithAnalysis(resume.id, userId);
         return { resume, analysis };
       })
     );
@@ -38,15 +52,24 @@ export async function action({ request }: { request: Request }) {
   }
 
   try {
-    const body = await request.json();
-    const resumeId = body?.resumeId;
-    const userId = body?.userId;
-
-    if (!resumeId || !userId) {
-      return Response.json({ error: 'Missing resume ID or user ID' }, { status: 400 });
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const deleted = await deleteResumeForUser(resumeId, userId);
+    const user = await getUserBySession(sessionToken);
+    if (!user) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const resumeId = body?.resumeId;
+
+    if (!resumeId) {
+      return Response.json({ error: 'Missing resume ID' }, { status: 400 });
+    }
+
+    const deleted = await deleteResumeForUser(resumeId, user.id);
 
     if (!deleted) {
       return Response.json({ error: 'Resume not found or not authorized' }, { status: 404 });

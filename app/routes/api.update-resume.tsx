@@ -1,6 +1,15 @@
 import { getResumeWithAnalysis } from "../lib/database/resumes.server";
+import { getUserBySession } from "../lib/auth.server";
 import { safeConsole } from "../lib/logging";
 import * as docx from 'docx';
+
+function getSessionToken(request: Request): string | null {
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
+  const sessionCookie = cookies.find((cookie) => cookie.startsWith('session='));
+  return sessionCookie ? sessionCookie.split('=')[1] : null;
+}
 
 interface TextSegment {
   text: string;
@@ -223,6 +232,16 @@ function createProfessionalResume(html: string): docx.Document {
 
 export async function action({ request }: { request: Request }) {
   try {
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const user = await getUserBySession(sessionToken);
+    if (!user) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const { resumeId, editedHtml, originalFileName, useOriginal } = await request.json();
 
     if (!resumeId || !originalFileName) {
@@ -233,7 +252,7 @@ export async function action({ request }: { request: Request }) {
     }
 
     // Get the resume record
-    const { resume } = await getResumeWithAnalysis(resumeId);
+    const { resume } = await getResumeWithAnalysis(resumeId, user.id);
     if (!resume) {
       return Response.json(
         { error: 'Resume not found' },

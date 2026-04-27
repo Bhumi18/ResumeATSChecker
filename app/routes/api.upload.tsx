@@ -3,21 +3,41 @@ import { safeConsole } from "../lib/logging";
 import { createResume, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { uploadResumeFile } from "../lib/storage.server";
 import { analyzeResume } from "../lib/ai-analyzer";
+import { getUserBySession } from "../lib/auth.server";
+
+function getSessionToken(request: Request): string | null {
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
+  const sessionCookie = cookies.find((cookie) => cookie.startsWith('session='));
+  return sessionCookie ? sessionCookie.split('=')[1] : null;
+}
 
 export async function action({ request }: { request: Request }) {
   try {
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const user = await getUserBySession(sessionToken);
+    if (!user) {
+      return Response.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     
     // Extract data from form
-    const userId = formData.get('userId') as string;
     const companyName = formData.get('companyName') as string | null;
     const jobTitle = formData.get('jobTitle') as string | null;
     const jobDescription = formData.get('jobDescription') as string | null;
     const file = formData.get('file') as File;
 
-    if (!userId || !file) {
+    if (!file) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const userId = user.id;
 
     // Step 1: Upload file
     const uploadResult = await uploadResumeFile(userId, file);
@@ -53,7 +73,7 @@ export async function action({ request }: { request: Request }) {
     } catch (aiError: any) {
       safeConsole.error('❌ Upload AI analysis failed:', aiError);
       try {
-        await updateResumeStatus(resume.id, 'failed', undefined);
+        await updateResumeStatus(resume.id, userId, 'failed', undefined);
       } catch (statusError) {
         safeConsole.error('❌ Failed to mark resume as failed:', statusError);
       }
@@ -74,7 +94,7 @@ export async function action({ request }: { request: Request }) {
     });
 
     // Step 5: Save analysis
-    await saveResumeAnalysis(resume.id, {
+    await saveResumeAnalysis(resume.id, userId, {
       atsScore: analysisResult.atsScore,
       atsTips: analysisResult.atsTips,
       toneStyleScore: analysisResult.toneStyleScore,
