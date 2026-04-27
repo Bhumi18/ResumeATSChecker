@@ -33,15 +33,14 @@ export default function Home() {
   const [pendingDeleteResume, setPendingDeleteResume] = useState<{ id: string; name: string } | null>(null);
 
   // Calculate stats
-  const completedResumes = resumes.filter(({ resume }) => resume.status === 'completed' && resume.overall_score != null);
   const stats = {
     total: resumes.length,
-    avgScore: completedResumes.length > 0
-      ? Math.round(completedResumes.reduce((sum, { resume }) => sum + (resume.overall_score as number), 0) / completedResumes.length)
+    avgScore: resumes.length > 0 
+      ? Math.round(resumes.reduce((sum, { resume }) => sum + (resume.overall_score || 0), 0) / resumes.length)
       : 0,
     completed: resumes.filter(({ resume }) => resume.status === 'completed').length,
     analyzing: resumes.filter(({ resume }) => resume.status === 'analyzing').length,
-    highScoring: resumes.filter(({ resume }) => resume.status === 'completed' && (resume.overall_score ?? 0) >= 80).length,
+    highScoring: resumes.filter(({ resume }) => (resume.overall_score || 0) >= 80).length,
   };
 
   useEffect(() => {
@@ -213,25 +212,12 @@ export default function Home() {
                 <div className="bg-white rounded-xl p-4 border border-gray-200 flex flex-col md:flex-row gap-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                   {/* Search Input */}
                   <div className="flex-1 relative group">
-                    <svg
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ink-400 transition-colors group-focus-within:text-ink-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
                     <input
                       type="text"
                       placeholder="Search by company or role..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-400 outline-none transition-all duration-200 hover:border-gray-300"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-200 focus:border-gray-400 outline-none transition-all duration-200 hover:border-gray-300"
                     />
                   </div>
 
@@ -350,27 +336,25 @@ export default function Home() {
                         imagePath: resume.resume_thumbnail_url || "/images/pdf.png",
                         resumePath: resume.resume_file_url,
                         feedback: {
-                          overallScore: resume.status === 'completed'
-                            ? (resume.overall_score ?? analysis?.ats_score ?? null)
-                            : null,
+                          overallScore: resume.overall_score || 0,
                           ATS: {
-                            score: resume.status === 'completed' ? (analysis?.ats_score ?? null) : null,
+                            score: analysis?.ats_score || 0,
                             tips: Array.isArray(analysis?.ats_tips) ? analysis.ats_tips as any : []
                           },
                           toneAndStyle: {
-                            score: resume.status === 'completed' ? (analysis?.tone_style_score ?? null) : null,
+                            score: analysis?.tone_style_score || 0,
                             tips: Array.isArray(analysis?.tone_style_tips) ? analysis.tone_style_tips as any : []
                           },
                           content: {
-                            score: resume.status === 'completed' ? (analysis?.content_score ?? null) : null,
+                            score: analysis?.content_score || 0,
                             tips: Array.isArray(analysis?.content_tips) ? analysis.content_tips as any : []
                           },
                           structure: {
-                            score: resume.status === 'completed' ? (analysis?.structure_score ?? null) : null,
+                            score: analysis?.structure_score || 0,
                             tips: Array.isArray(analysis?.structure_tips) ? analysis.structure_tips as any : []
                           },
                           skills: {
-                            score: resume.status === 'completed' ? (analysis?.skills_score ?? null) : null,
+                            score: analysis?.skills_score || 0,
                             tips: Array.isArray(analysis?.skills_tips) ? analysis.skills_tips as any : []
                           },
                         },
