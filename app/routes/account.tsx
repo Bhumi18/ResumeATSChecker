@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useUser, useAuth } from "../lib/auth-context";
 import { useNavigate } from "react-router";
 import { safeConsole } from "../lib/logging";
+import { getPasswordPolicyError } from "../lib/password-policy";
 
 export default function AccountPage() {
   const { user } = useUser();
@@ -124,8 +125,9 @@ export default function AccountPage() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters");
+    const passwordError = getPasswordPolicyError(newPassword);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -134,24 +136,35 @@ export default function AccountPage() {
     setMessage("");
 
     try {
-      // Password update would need a new API endpoint
-      setError("Password change is not yet implemented. Please contact support.");
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to change password");
+        return;
+      }
+
+      setMessage("Password changed successfully!");
       setShowPasswordModal(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setMessage(""), 3000);
     } catch (err: any) {
       safeConsole.error("Password change error:", err);
-      
-      // Provide clear error messages
-      if (err.errors?.[0]?.code === "form_password_incorrect") {
-        setError("Current password is incorrect. Please try again.");
-      } else if (err.errors?.[0]?.message?.includes("Reverification") || err.errors?.[0]?.code === "reverification_required") {
-        setError("For security reasons, please sign out and sign back in before changing your password.");
-      } else if (err.errors?.[0]?.code === "form_password_pwned") {
-        setError("This password has been found in a data breach. Please choose a different password.");
-      } else if (err.errors?.[0]?.code === "form_password_size_in_bytes") {
-        setError("Password must be at least 8 characters long.");
-      } else {
-        setError(err.errors?.[0]?.message || err.message || "Failed to change password. Please try again.");
-      }
+      setError("An error occurred while changing your password. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 import type { Route } from "./+types/api.auth.reset-password";
-import { resetPasswordWithToken } from "../lib/auth.server";
+import { resetPasswordWithToken, validatePasswordStrength } from "../lib/auth.server";
 import { safeConsole } from "../lib/logging";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -14,8 +14,9 @@ export async function action({ request }: Route.ActionArgs) {
       return Response.json({ error: "Token and password are required" }, { status: 400 });
     }
 
-    if (password.length < 8) {
-      return Response.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    const passwordPolicy = validatePasswordStrength(password);
+    if (!passwordPolicy.valid) {
+      return Response.json({ error: passwordPolicy.message || "Password does not meet security requirements" }, { status: 400 });
     }
 
     // Reset password using token

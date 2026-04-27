@@ -3,6 +3,7 @@ import { useAuth } from "../lib/auth-context";
 import { Navigate, useNavigate, Link, useSearchParams } from "react-router";
 import { useState, type FormEvent } from "react";
 import BrandLogo from "../components/BrandLogo";
+import { getPasswordPolicyError } from "../lib/password-policy";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -43,8 +44,9 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    const passwordError = getPasswordPolicyError(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 

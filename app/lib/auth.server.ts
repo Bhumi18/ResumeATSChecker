@@ -6,6 +6,7 @@
 import { sql, queryOne, execute, query } from './neon.server';
 import type { Database } from '../../types/database';
 import { safeConsole } from './logging';
+import argon2 from 'argon2';
 
 type User = Database['public']['Tables']['users']['Row'];
 type Session = {
@@ -20,24 +21,107 @@ type Session = {
 // Session configuration
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
-/**
- * Hash password using Web Crypto API (available in Node.js 16+)
- */
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return `sha256:${hashHex}`;
+// Password hashing configuration (Argon2id)
+const ARGON2_CONFIG: argon2.Options & { raw?: false } = {
+  type: argon2.argon2id,
+  memoryCost: 19456,
+  timeCost: 2,
+  parallelism: 1,
+};
+
+type PasswordValidationResult = {
+  valid: boolean;
+  message?: string;
+};
+
+const COMMON_PASSWORDS = new Set([
+  'password',
+  'password123',
+  '12345678',
+  'qwerty123',
+  'admin123',
+  'letmein',
+  'welcome123',
+  'iloveyou',
+]);
+
+export function validatePasswordStrength(password: string): PasswordValidationResult {
+  const value = String(password || '');
+
+  if (value.length < 12) {
+    return { valid: false, message: 'Password must be at least 12 characters long.' };
+  }
+
+  if (value.length > 128) {
+    return { valid: false, message: 'Password must be 128 characters or fewer.' };
+  }
+
+  if (!/[a-z]/.test(value)) {
+    return { valid: false, message: 'Password must include at least one lowercase letter.' };
+  }
+
+  if (!/[A-Z]/.test(value)) {
+    return { valid: false, message: 'Password must include at least one uppercase letter.' };
+  }
+
+  if (!/[0-9]/.test(value)) {
+    return { valid: false, message: 'Password must include at least one number.' };
+  }
+
+  if (!/[^A-Za-z0-9]/.test(value)) {
+    return { valid: false, message: 'Password must include at least one special character.' };
+  }
+
+  if (COMMON_PASSWORDS.has(value.toLowerCase())) {
+    return { valid: false, message: 'Password is too common. Please choose a stronger password.' };
+  }
+
+  return { valid: true };
 }
 
 /**
- * Verify password against hash
+ * Hash password using Argon2id.
  */
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const newHash = await hashPassword(password);
-  return newHash === hash;
+async function hashPassword(password: string): Promise<string> {
+  return argon2.hash(password, ARGON2_CONFIG);
+}
+
+/**
+ * Verify password against either Argon2id (current) or legacy SHA-256 hashes.
+ */
+async function verifyPassword(
+  password: string,
+  hash: string
+): Promise<{ isValid: boolean; needsRehash: boolean }> {
+  if (!hash) return { isValid: false, needsRehash: false };
+
+  if (hash.startsWith('sha256:')) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+    const isValid = `sha256:${hashHex}` === hash;
+    return { isValid, needsRehash: isValid };
+  }
+
+  try {
+    const isValid = await argon2.verify(hash, password);
+    if (!isValid) {
+      return { isValid: false, needsRehash: false };
+    }
+
+    return {
+      isValid: true,
+      needsRehash: argon2.needsRehash(hash, ARGON2_CONFIG),
+    };
+  } catch {
+    return { isValid: false, needsRehash: false };
+  }
+}
+
+function isLegacyPasswordHash(hash: string): boolean {
+  return typeof hash === 'string' && hash.startsWith('sha256:');
 }
 
 /**
@@ -59,6 +143,12 @@ export async function createUser(
   lastName?: string
 ): Promise<User | null> {
   try {
+    const passwordPolicy = validatePasswordStrength(password);
+    if (!passwordPolicy.valid) {
+      safeConsole.warn('Rejected weak password during account creation for email:', email);
+      return null;
+    }
+
     const passwordHash = await hashPassword(password);
     const username = email.split('@')[0]; // Simple username from email
     
@@ -90,9 +180,23 @@ export async function authenticateUser(email: string, password: string): Promise
       return null;
     }
     
-    const isValid = await verifyPassword(password, user.password_hash);
-    if (!isValid) {
+    const verification = await verifyPassword(password, user.password_hash);
+    if (!verification.isValid) {
       return null;
+    }
+
+    // Transparent migration: upgrade legacy SHA-256 and outdated Argon2 hashes after successful login.
+    if (verification.needsRehash || isLegacyPasswordHash(user.password_hash)) {
+      try {
+        const upgradedHash = await hashPassword(password);
+        await execute(
+          `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+          [upgradedHash, user.id]
+        );
+      } catch (migrationError) {
+        // Do not block login if migration fails; user is already authenticated.
+        safeConsole.warn('Password hash migration failed for user:', user.id, migrationError);
+      }
     }
     
     return user;
@@ -223,6 +327,12 @@ export async function deleteAllUserSessions(userId: string): Promise<boolean> {
  */
 export async function updateUserPassword(userId: string, newPassword: string): Promise<boolean> {
   try {
+    const passwordPolicy = validatePasswordStrength(newPassword);
+    if (!passwordPolicy.valid) {
+      safeConsole.warn('Rejected weak password update for user:', userId);
+      return false;
+    }
+
     const passwordHash = await hashPassword(newPassword);
     await execute(
       `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
