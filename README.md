@@ -53,7 +53,7 @@ Your resume is evaluated on:
 
 ### 🔐 Secure & Private
 - Your resume is encrypted and securely stored
-- Full user authentication and data isolation
+- Full user authentication with local sessions and data isolation
 - You control your data
 
 ---

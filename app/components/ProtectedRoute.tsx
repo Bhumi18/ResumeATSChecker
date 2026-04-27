@@ -19,11 +19,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-8">
           <div className="text-2xl font-semibold text-red-500">Authentication Failed to Load</div>
           <p className="text-ink-400 text-center max-w-md">
-            Clerk authentication service could not be reached. This usually means your
-            <code className="bg-gray-800 px-1 rounded"> VITE_CLERK_PUBLISHABLE_KEY </code>
-            in <code className="bg-gray-800 px-1 rounded">.env</code> is invalid or the Clerk instance was deleted.
+            The local session auth service could not be reached. This usually means the app
+            server is unavailable or your <code className="bg-gray-800 px-1 rounded">DATABASE_URL</code>
+            in <code className="bg-gray-800 px-1 rounded">.env</code> is invalid.
           </p>
-          <p className="text-ink-500 text-sm">Get a valid key from <a href="https://dashboard.clerk.com" target="_blank" className="text-blue-400 underline">dashboard.clerk.com</a></p>
+          <p className="text-ink-500 text-sm">Make sure the development server is running and your database connection is configured.</p>
           <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Retry</button>
         </div>
       );

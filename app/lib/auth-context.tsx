@@ -1,6 +1,6 @@
 /**
  * Client-side Authentication Context
- * Provides auth state and functions to replace Clerk hooks
+ * Provides auth state and functions for the local session-based auth flow
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
-            // Transform to match Clerk user format for compatibility
+            // Transform the API response to match the client auth shape
             const transformedUser: AuthUser = {
               id: data.user.id,
               email: data.user.email,
@@ -201,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to use auth context (replaces useAuth from Clerk)
+// Hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
@@ -210,7 +210,7 @@ export function useAuth() {
   return context;
 }
 
-// Hook to use user (replaces useUser from Clerk)
+// Hook to use user
 export function useUser() {
   const { user, isLoaded } = useAuth();
   return { user, isLoaded };
