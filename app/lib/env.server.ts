@@ -7,9 +7,9 @@
 
 import 'dotenv/config';
 
-if (!process.env.GOOGLE_AI_STUDIO_API_KEY) {
+if (!process.env.USER_AI_API_KEY_ENCRYPTION_KEY) {
   // Keep this as a warning (not an error) so non-AI pages can still load.
   console.warn(
-    '[env] GOOGLE_AI_STUDIO_API_KEY is not set. AI analysis endpoints will fail until it is configured.'
+    '[env] USER_AI_API_KEY_ENCRYPTION_KEY is not set. User API keys cannot be stored securely.'
   );
 }

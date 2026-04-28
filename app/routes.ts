@@ -24,6 +24,7 @@ export default [
   route("api/auth/signin", "routes/api.auth.signin.tsx"),
   route("api/auth/signout", "routes/api.auth.signout.tsx"),
   route("api/auth/me", "routes/api.auth.me.tsx"),
+  route("api/auth/ai-key", "routes/api.auth.ai-key.tsx"),
   route("api/auth/update-profile", "routes/api.auth.update-profile.tsx"),
   route("api/auth/forgot-password", "routes/api.auth.forgot-password.tsx"),
   route("api/auth/reset-password", "routes/api.auth.reset-password.tsx"),

@@ -45,10 +45,15 @@ const GEMINI_MODELS = {
   EMBEDDING: 'text-embedding-004',
 } as const;
 
-function getGoogleAiStudioApiKey(): string | undefined {
-  return typeof process !== 'undefined' && typeof (process as any).env !== 'undefined'
-    ? ((process as any).env.GOOGLE_AI_STUDIO_API_KEY as string | undefined)
-    : undefined;
+const MISSING_API_KEY_ERROR =
+  'Google AI Studio API key not configured for this account. Add it in Account Settings.';
+
+function resolveGoogleAiStudioApiKey(apiKey?: string): string {
+  const normalized = String(apiKey || '').trim();
+  if (!normalized) {
+    throw new Error(MISSING_API_KEY_ERROR);
+  }
+  return normalized;
 }
 
 function truncateForPrompt(text: string, maxChars: number): { value: string; truncated: boolean } {
@@ -1094,16 +1099,8 @@ export async function extractTextFromFile(file: File): Promise<string> {
   ) {
     const mammoth = await import('mammoth');
     const arrayBuffer = await file.arrayBuffer();
-    // In Node, Mammoth reliably supports `buffer`. Some builds reject `arrayBuffer`
-    // with "Could not find file in options".
-    let result: any;
-    try {
-      const nodeBuffer = await import('node:buffer');
-      const buffer = nodeBuffer.Buffer.from(arrayBuffer);
-      result = await mammoth.extractRawText({ buffer });
-    } catch {
-      result = await mammoth.extractRawText({ arrayBuffer });
-    }
+    const buffer = Buffer.from(arrayBuffer);
+    const result = await mammoth.extractRawText({ buffer });
     return String(result.value || '').trim();
   }
 
@@ -1124,12 +1121,15 @@ export async function extractTextFromFile(file: File): Promise<string> {
  * Generate embeddings for semantic matching using text-embedding-004
  */
 export async function generateEmbedding(
-  text: string
+  text: string,
+  options?: { apiKey?: string }
 ): Promise<number[] | null> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    safeConsole.error('Google AI Studio API key not configured');
+  let apiKey: string;
+
+  try {
+    apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
+  } catch (error) {
+    safeConsole.error('Google AI Studio API key not configured:', error);
     return null;
   }
 
@@ -1186,15 +1186,9 @@ async function analyzeWithGeminiFlash(
   resumeText: string,
   jobTitle?: string,
   jobDescription?: string,
-  overrides?: { temperature?: number; maxOutputTokens?: number }
+  overrides?: { temperature?: number; maxOutputTokens?: number; apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(overrides?.apiKey);
 
   const sanitizedJobDescription = sanitizeJobDescriptionForAnalysis(jobDescription || '');
 
@@ -1317,15 +1311,9 @@ async function analyzeWithGeminiPro(
   resumeText: string,
   jobTitle?: string,
   jobDescription?: string,
-  overrides?: { temperature?: number; maxOutputTokens?: number }
+  overrides?: { temperature?: number; maxOutputTokens?: number; apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(overrides?.apiKey);
 
   const sanitizedJobDescription = sanitizeJobDescriptionForAnalysis(jobDescription || '');
 
@@ -1449,15 +1437,10 @@ Provide 5-8 highly actionable, specific tips per category with examples.`;
 export async function analyzeResumeFast(
   file: File,
   jobTitle?: string,
-  jobDescription?: string
+  jobDescription?: string,
+  options?: { apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
 
   try {
     const resumeText = await extractTextFromFile(file);
@@ -1468,7 +1451,7 @@ export async function analyzeResumeFast(
 
     // Try Gemini Flash first
     try {
-      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
+      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription, { apiKey });
     } catch (flashError: any) {
       // If Flash fails due to rate limit or quota, throw to allow fallback
       safeConsole.warn('Gemini Flash failed:', flashError?.message);
@@ -1487,15 +1470,10 @@ export async function analyzeResumeFast(
 export async function analyzeResumePremium(
   file: File,
   jobTitle?: string,
-  jobDescription?: string
+  jobDescription?: string,
+  options?: { apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
 
   try {
     const resumeText = await extractTextFromFile(file);
@@ -1504,7 +1482,7 @@ export async function analyzeResumePremium(
       throw new Error('Could not extract sufficient text from resume');
     }
 
-    return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
+    return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription, { apiKey });
   } catch (error) {
     safeConsole.error('Error in analyzeResumePremium:', error);
     throw error;
@@ -1519,15 +1497,10 @@ export async function analyzeResume(
   file: File,
   jobTitle?: string,
   jobDescription?: string,
-  usePremium: boolean = false
+  usePremium: boolean = false,
+  options?: { apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
 
   try {
     const resumeText = await extractTextFromFile(file);
@@ -1539,18 +1512,18 @@ export async function analyzeResume(
     // If premium requested, use Pro model directly
     if (usePremium) {
       safeConsole.log('Using Gemini Pro for premium analysis...');
-      return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
+      return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription, { apiKey });
     }
 
     // Otherwise, try Flash first for fast analysis
     try {
       safeConsole.log('Using Gemini Flash for fast analysis...');
-      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
+      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription, { apiKey });
     } catch (flashError: any) {
       // If Flash fails (quota/rate limit), fallback to Pro
       safeConsole.warn('Gemini Flash failed, falling back to Pro:', flashError?.message);
       safeConsole.log('Retrying with Gemini Pro...');
-      return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
+      return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription, { apiKey });
     }
   } catch (error) {
     safeConsole.error('Error in analyzeResume:', error);
@@ -1565,15 +1538,9 @@ export async function analyzeResumeText(
   resumeText: string,
   jobTitle?: string,
   jobDescription?: string,
-  options?: { aiOnly?: boolean }
+  options?: { aiOnly?: boolean; apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
 
   if (!resumeText || resumeText.trim().length < 100) {
     throw new Error('Resume text is too short or empty');
@@ -1584,7 +1551,7 @@ export async function analyzeResumeText(
     // Use Flash for fast re-analysis
     try {
       safeConsole.log('Trying Gemini Flash...');
-      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
+      return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription, { apiKey });
     } catch (flashError: any) {
       const flashErrorMessage = formatAiError(flashError);
 
@@ -1593,6 +1560,7 @@ export async function analyzeResumeText(
         try {
           safeConsole.warn('Gemini Flash returned invalid JSON; retrying with stricter settings...');
           return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription, {
+            apiKey,
             temperature: 0.2,
             maxOutputTokens: 4500,
           });
@@ -1605,7 +1573,7 @@ export async function analyzeResumeText(
       safeConsole.warn('Gemini Flash failed, falling back to Pro:', flashErrorMessage);
       safeConsole.log('Retrying with Gemini Pro...');
       try {
-        return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription);
+        return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription, { apiKey });
       } catch (proError: any) {
         let proErrorMessage = formatAiError(proError);
 
@@ -1613,6 +1581,7 @@ export async function analyzeResumeText(
           try {
             safeConsole.warn('Gemini Pro returned invalid JSON; retrying with stricter settings...');
             return await analyzeWithGeminiPro(resumeText, jobTitle, jobDescription, {
+              apiKey,
               temperature: 0.2,
               maxOutputTokens: 8000,
             });
@@ -1650,10 +1619,11 @@ export async function analyzeResumeWithFallback(
   file: File,
   jobTitle?: string,
   jobDescription?: string,
-  usePremium: boolean = false
+  usePremium: boolean = false,
+  options?: { apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
   try {
-    const aiResult = await analyzeResume(file, jobTitle, jobDescription, usePremium);
+    const aiResult = await analyzeResume(file, jobTitle, jobDescription, usePremium, options);
     safeConsole.log('✅ Analysis source:', {
       modelUsed: aiResult.modelUsed,
       fileName: file.name,
@@ -1777,15 +1747,10 @@ export function getMockAnalysis(): ResumeAnalysisResult {
 export async function generateOptimizedResume(
   resumeText: string,
   jobTitle: string,
-  jobDescription: string
+  jobDescription: string,
+  options?: { apiKey?: string }
 ): Promise<string> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
 
   const prompt = `You are an expert resume writer. Rewrite this entire resume to perfectly match the job description while maintaining truthfulness and the candidate's actual experience.
 
@@ -1858,17 +1823,12 @@ OUTPUT FORMAT: Return ONLY the complete resume text, no explanations, no JSON, n
 export async function reAnalyzeResume(
   resumeText: string,
   jobTitle?: string,
-  jobDescription?: string
+  jobDescription?: string,
+  options?: { apiKey?: string }
 ): Promise<ResumeAnalysisResult> {
-  const apiKey = getGoogleAiStudioApiKey();
-  
-  if (!apiKey) {
-    throw new Error(
-      'Google AI Studio API key not configured. Set GOOGLE_AI_STUDIO_API_KEY on the server and restart.'
-    );
-  }
+  const apiKey = resolveGoogleAiStudioApiKey(options?.apiKey);
 
   // Use the same analysis function but mark it as re-analysis
   safeConsole.log('Re-analyzing resume with updated content...');
-  return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription);
+  return await analyzeWithGeminiFlash(resumeText, jobTitle, jobDescription, { apiKey });
 }

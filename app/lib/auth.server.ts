@@ -6,6 +6,7 @@
 import { sql, queryOne, execute, query } from './neon.server';
 import type { Database } from '../../types/database';
 import { safeConsole } from './logging';
+import { decryptUserApiKey, encryptUserApiKey } from './user-api-key.server';
 import argon2 from 'argon2';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -433,6 +434,83 @@ export async function updateUserProfile(
     return await queryOne<User>(query, values);
   } catch (error) {
     safeConsole.error('Error updating user profile:', error);
+    return null;
+  }
+}
+
+export async function setUserAiApiKey(userId: string, apiKey: string): Promise<{ last4: string } | null> {
+  try {
+    const encryptedPayload = encryptUserApiKey(apiKey);
+    const success = await execute(
+      `UPDATE users
+       SET ai_api_key_encrypted = $1,
+           ai_api_key_iv = $2,
+           ai_api_key_tag = $3,
+           ai_api_key_last4 = $4,
+           updated_at = NOW()
+       WHERE id = $5`,
+      [
+        encryptedPayload.encrypted,
+        encryptedPayload.iv,
+        encryptedPayload.tag,
+        encryptedPayload.last4,
+        userId,
+      ]
+    );
+
+    if (!success) {
+      return null;
+    }
+
+    return { last4: encryptedPayload.last4 };
+  } catch (error) {
+    safeConsole.error('Error saving user API key:', error);
+    return null;
+  }
+}
+
+export async function clearUserAiApiKey(userId: string): Promise<boolean> {
+  try {
+    return await execute(
+      `UPDATE users
+       SET ai_api_key_encrypted = NULL,
+           ai_api_key_iv = NULL,
+           ai_api_key_tag = NULL,
+           ai_api_key_last4 = NULL,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [userId]
+    );
+  } catch (error) {
+    safeConsole.error('Error clearing user API key:', error);
+    return false;
+  }
+}
+
+export async function getUserAiApiKey(userId: string): Promise<string | null> {
+  try {
+    const record = await queryOne<{
+      ai_api_key_encrypted: string | null;
+      ai_api_key_iv: string | null;
+      ai_api_key_tag: string | null;
+    }>(
+      `SELECT ai_api_key_encrypted, ai_api_key_iv, ai_api_key_tag
+       FROM users
+       WHERE id = $1`,
+      [userId]
+    );
+
+    if (!record?.ai_api_key_encrypted || !record.ai_api_key_iv || !record.ai_api_key_tag) {
+      return null;
+    }
+
+    return decryptUserApiKey({
+      encrypted: record.ai_api_key_encrypted,
+      iv: record.ai_api_key_iv,
+      tag: record.ai_api_key_tag,
+    });
+  } catch (error) {
+    safeConsole.error('Error reading user API key:', error);
     return null;
   }
 }

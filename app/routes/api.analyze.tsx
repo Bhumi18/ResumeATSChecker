@@ -1,7 +1,7 @@
 import "../lib/env.server";
 import { getResumeWithAnalysis, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { analyzeResumeText } from "../lib/ai-analyzer";
-import { getUserBySession } from "../lib/auth.server";
+import { getUserAiApiKey, getUserBySession } from "../lib/auth.server";
 import { safeConsole } from "../lib/logging";
 
 function getSessionToken(request: Request): string | null {
@@ -95,6 +95,17 @@ export async function action({ request }: { request: Request }) {
       );
     }
 
+    const apiKey = await getUserAiApiKey(user.id);
+    if (!apiKey) {
+      return Response.json(
+        {
+          error: 'API key required',
+          details: 'Add your Google AI Studio API key in Account Settings to run analysis.',
+        },
+        { status: 400 }
+      );
+    }
+
     safeConsole.log('🔄 Starting resume analysis...');
 
     // Analyze the edited resume text
@@ -104,7 +115,7 @@ export async function action({ request }: { request: Request }) {
         cleanedResumeText,
         jobTitle || '',
         jobDescription || '',
-        { aiOnly: true }
+        { aiOnly: true, apiKey }
       );
     } catch (analysisError: any) {
       safeConsole.error('❌ Analysis failed:', analysisError);
@@ -116,7 +127,7 @@ export async function action({ request }: { request: Request }) {
 
       const lowerDetails = details.toLowerCase();
       const hint = lowerDetails.includes('api key')
-        ? 'Missing or invalid Google AI Studio API key. Set GOOGLE_AI_STUDIO_API_KEY (server) and restart the server.'
+        ? 'Missing or invalid Google AI Studio API key. Add it in Account Settings and try again.'
         : lowerDetails.includes('quota') || lowerDetails.includes('rate')
           ? 'Google AI quota/rate limit may be exceeded. Try again later or use a different key.'
           : undefined;

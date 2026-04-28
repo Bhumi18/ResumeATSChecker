@@ -47,7 +47,9 @@ export async function action({ request }: { request: Request }) {
         first_name: user.first_name,
         last_name: user.last_name,
         username: user.username,
-        profile_image_url: user.profile_image_url
+        profile_image_url: user.profile_image_url,
+        has_ai_api_key: false,
+        ai_api_key_last4: null
       }
     });
 

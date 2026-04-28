@@ -3,7 +3,7 @@ import { safeConsole } from "../lib/logging";
 import { createResume, saveResumeAnalysis, updateResumeStatus } from "../lib/database/index.server";
 import { uploadResumeFile } from "../lib/storage.server";
 import { analyzeResume } from "../lib/ai-analyzer";
-import { getUserBySession } from "../lib/auth.server";
+import { getUserAiApiKey, getUserBySession } from "../lib/auth.server";
 
 function getSessionToken(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
@@ -61,6 +61,17 @@ export async function action({ request }: { request: Request }) {
       return Response.json({ error: 'Failed to create resume record' }, { status: 500 });
     }
 
+    const apiKey = await getUserAiApiKey(userId);
+    if (!apiKey) {
+      return Response.json(
+        {
+          error: 'API key required',
+          details: 'Add your Google AI Studio API key in Account Settings to run analysis.',
+        },
+        { status: 400 }
+      );
+    }
+
     // Step 4: Analyze resume (AI-only: Gemini Flash -> Gemini Pro fallback)
     let analysisResult;
     try {
@@ -68,7 +79,8 @@ export async function action({ request }: { request: Request }) {
         file,
         jobTitle || undefined,
         jobDescription || undefined,
-        false
+        false,
+        { apiKey }
       );
     } catch (aiError: any) {
       safeConsole.error('❌ Upload AI analysis failed:', aiError);

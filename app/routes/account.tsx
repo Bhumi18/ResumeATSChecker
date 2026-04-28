@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useUser, useAuth } from "../lib/auth-context";
 import { useNavigate } from "react-router";
 import { safeConsole } from "../lib/logging";
@@ -26,6 +26,15 @@ export default function AccountPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [hasApiKey, setHasApiKey] = useState(Boolean(user?.hasAiApiKey));
+  const [apiKeyLast4, setApiKeyLast4] = useState<string | null>(user?.aiApiKeyLast4 || null);
+  const [apiKeySaving, setApiKeySaving] = useState(false);
+
+  useEffect(() => {
+    setHasApiKey(Boolean(user?.hasAiApiKey));
+    setApiKeyLast4(user?.aiApiKeyLast4 || null);
+  }, [user?.hasAiApiKey, user?.aiApiKeyLast4]);
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +176,76 @@ export default function AccountPage() {
       setError("An error occurred while changing your password. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveApiKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const trimmedKey = apiKey.trim();
+    if (!trimmedKey) {
+      setError("API key is required");
+      return;
+    }
+
+    setApiKeySaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await fetch('/api/auth/ai-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ apiKey: trimmedKey }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || 'Failed to save API key');
+        return;
+      }
+
+      setHasApiKey(true);
+      setApiKeyLast4(data.ai_api_key_last4 || null);
+      setApiKey("");
+      setMessage("API key saved securely.");
+    } catch (err: any) {
+      safeConsole.error("API key save error:", err);
+      setError("Failed to save API key");
+    } finally {
+      setApiKeySaving(false);
+    }
+  };
+
+  const handleRemoveApiKey = async () => {
+    if (!confirm("Remove your saved API key? You will need to add it again to run analysis.")) return;
+
+    setApiKeySaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await fetch('/api/auth/ai-key', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || 'Failed to remove API key');
+        return;
+      }
+
+      setHasApiKey(false);
+      setApiKeyLast4(null);
+      setMessage("API key removed.");
+    } catch (err: any) {
+      safeConsole.error("API key removal error:", err);
+      setError("Failed to remove API key");
+    } finally {
+      setApiKeySaving(false);
     }
   };
 
@@ -469,6 +548,49 @@ export default function AccountPage() {
                   >
                     Update password
                   </button>
+                </div>
+
+                <hr className="border-gray-200" />
+
+                {/* API Key Section */}
+                <div>
+                  <h3 className="text-lg font-semibold text-ink-700 mb-2">Google AI Studio API key</h3>
+                  <p className="text-sm text-ink-500 mb-4">
+                    Stored encrypted on the server and never sent back to the browser.
+                  </p>
+                  <form onSubmit={handleSaveApiKey} className="space-y-4">
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="AIza..."
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#606beb]/20 focus:border-[#606beb]"
+                    />
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="submit"
+                        disabled={apiKeySaving}
+                        className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                      >
+                        {apiKeySaving ? "Saving..." : "Save key"}
+                      </button>
+                      {hasApiKey && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveApiKey}
+                          disabled={apiKeySaving}
+                          className="px-4 py-2 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg font-medium hover:bg-red-100 transition-all disabled:opacity-50"
+                        >
+                          Remove key
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                  <p className="text-xs text-ink-400 mt-2">
+                    {hasApiKey
+                      ? `Saved (${apiKeyLast4 ? `••••${apiKeyLast4}` : 'hidden'})`
+                      : "Not set yet"}
+                  </p>
                 </div>
 
                 <hr className="border-gray-200" />

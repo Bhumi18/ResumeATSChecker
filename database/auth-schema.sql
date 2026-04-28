@@ -6,7 +6,11 @@
 ALTER TABLE users 
   ADD COLUMN IF NOT EXISTS password_hash TEXT,
   ADD COLUMN IF NOT EXISTS username TEXT UNIQUE,
-  ALTER COLUMN clerk_user_id DROP NOT NULL;
+    ADD COLUMN IF NOT EXISTS ai_api_key_encrypted TEXT,
+    ADD COLUMN IF NOT EXISTS ai_api_key_iv TEXT,
+    ADD COLUMN IF NOT EXISTS ai_api_key_tag TEXT,
+    ADD COLUMN IF NOT EXISTS ai_api_key_last4 TEXT,
+    ALTER COLUMN clerk_user_id DROP NOT NULL;
 
 -- Step 2: Create sessions table for authentication
 CREATE TABLE IF NOT EXISTS user_sessions (

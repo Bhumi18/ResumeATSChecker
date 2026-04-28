@@ -23,6 +23,8 @@ export interface AuthUser {
   primaryEmailAddress?: { emailAddress: string };
   imageUrl?: string;
   oauthProviders?: OAuthProvider[];
+  hasAiApiKey?: boolean;
+  aiApiKeyLast4?: string | null;
 }
 
 interface AuthContextType {
@@ -63,6 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               primaryEmailAddress: { emailAddress: data.user.email },
               imageUrl: data.user.profile_image_url,
               oauthProviders: data.user.oauth_providers || [],
+              hasAiApiKey: data.user.has_ai_api_key || false,
+              aiApiKeyLast4: data.user.ai_api_key_last4 || null,
             };
             setUser(transformedUser);
           }
@@ -98,6 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profileImageUrl: data.user.profile_image_url,
           primaryEmailAddress: { emailAddress: data.user.email },
           imageUrl: data.user.profile_image_url,
+          hasAiApiKey: data.user.has_ai_api_key || false,
+          aiApiKeyLast4: data.user.ai_api_key_last4 || null,
         };
         setUser(transformedUser);
         return { success: true };
@@ -130,6 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profileImageUrl: data.user.profile_image_url,
           primaryEmailAddress: { emailAddress: data.user.email },
           imageUrl: data.user.profile_image_url,
+          hasAiApiKey: data.user.has_ai_api_key || false,
+          aiApiKeyLast4: data.user.ai_api_key_last4 || null,
         };
         setUser(transformedUser);
         return { success: true };
@@ -166,6 +174,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok && data.user) {
+        const preservedHasApiKey = user?.hasAiApiKey ?? false;
+        const preservedLast4 = user?.aiApiKeyLast4 ?? null;
         const transformedUser: AuthUser = {
           id: data.user.id,
           email: data.user.email,
@@ -175,6 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profileImageUrl: data.user.profile_image_url,
           primaryEmailAddress: { emailAddress: data.user.email },
           imageUrl: data.user.profile_image_url,
+          hasAiApiKey: data.user.has_ai_api_key ?? preservedHasApiKey,
+          aiApiKeyLast4: data.user.ai_api_key_last4 ?? preservedLast4,
         };
         setUser(transformedUser);
         return { success: true };

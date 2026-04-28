@@ -36,6 +36,7 @@ function redactString(input: string, maxLen: number): string {
 
   // Env-style assignments.
   value = value.replace(/(GOOGLE_AI_STUDIO_API_KEY\s*=\s*)([^\s]+)/gi, '$1[REDACTED]');
+  value = value.replace(/(USER_AI_API_KEY_ENCRYPTION_KEY\s*=\s*)([^\s]+)/gi, '$1[REDACTED]');
 
   // Authorization headers (best-effort).
   value = value.replace(/(Authorization:\s*Bearer\s+)[A-Za-z0-9\-_.]+/gi, '$1[REDACTED]');

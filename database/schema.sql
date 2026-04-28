@@ -15,6 +15,10 @@ CREATE TABLE users (
     first_name TEXT,
     last_name TEXT,
     profile_image_url TEXT,
+    ai_api_key_encrypted TEXT,
+    ai_api_key_iv TEXT,
+    ai_api_key_tag TEXT,
+    ai_api_key_last4 TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

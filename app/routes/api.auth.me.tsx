@@ -30,6 +30,10 @@ export async function loader({ request }: { request: Request }) {
 
     const oauthProviders = await getUserOAuthProviders(user.id);
 
+    const hasApiKey = Boolean(
+      user.ai_api_key_encrypted && user.ai_api_key_iv && user.ai_api_key_tag
+    );
+
     return Response.json({ 
       user: {
         id: user.id,
@@ -38,7 +42,9 @@ export async function loader({ request }: { request: Request }) {
         last_name: user.last_name,
         username: user.username,
         profile_image_url: user.profile_image_url,
-        oauth_providers: oauthProviders
+        oauth_providers: oauthProviders,
+        has_ai_api_key: hasApiKey,
+        ai_api_key_last4: user.ai_api_key_last4 || null,
       }
     });
   } catch (error) {

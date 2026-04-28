@@ -19,6 +19,10 @@ export interface Database {
           profile_image_url: string | null
           password_hash: string | null
           username: string | null
+          ai_api_key_encrypted: string | null
+          ai_api_key_iv: string | null
+          ai_api_key_tag: string | null
+          ai_api_key_last4: string | null
           created_at: string
           updated_at: string
         }
@@ -31,6 +35,10 @@ export interface Database {
           profile_image_url?: string | null
           password_hash?: string | null
           username?: string | null
+          ai_api_key_encrypted?: string | null
+          ai_api_key_iv?: string | null
+          ai_api_key_tag?: string | null
+          ai_api_key_last4?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -43,6 +51,10 @@ export interface Database {
           profile_image_url?: string | null
           password_hash?: string | null
           username?: string | null
+          ai_api_key_encrypted?: string | null
+          ai_api_key_iv?: string | null
+          ai_api_key_tag?: string | null
+          ai_api_key_last4?: string | null
           created_at?: string
           updated_at?: string
         }
