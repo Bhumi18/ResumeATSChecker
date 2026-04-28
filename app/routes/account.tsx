@@ -298,9 +298,22 @@ export default function AccountPage() {
     <div className="min-h-screen bg-gray-50 py-10 overflow-x-hidden">
       <div className="flex flex-col items-center justify-center px-4">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-ink-900 mb-2">Account Settings</h1>
-          <p className="text-ink-500">Manage your profile and account preferences</p>
+        <div className="mb-8 w-full max-w-4xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <button 
+              onClick={() => navigate("/dashboard")}
+              className="inline-flex items-center gap-2 text-[#606beb] hover:text-[#4957eb] font-semibold transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Dashboard
+            </button>
+            <div className="text-center sm:text-right">
+              <h1 className="text-4xl font-bold text-ink-900 mb-2">Account Settings</h1>
+              <p className="text-ink-500">Manage your profile and account preferences</p>
+            </div>
+          </div>
         </div>
 
         {/* Main Container */}
@@ -806,18 +819,6 @@ export default function AccountPage() {
           </div>
         )}
 
-        {/* Back Button */}
-        <div className="mt-6">
-          <button 
-            onClick={() => navigate("/dashboard")}
-            className="inline-flex items-center gap-2 text-[#606beb] hover:text-[#4957eb] font-semibold transition-all"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Dashboard
-          </button>
-        </div>
       </div>
     </div>
   );
