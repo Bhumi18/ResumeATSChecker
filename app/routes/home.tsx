@@ -144,6 +144,32 @@ export default function Home() {
               </p>
             </div>
 
+            {!user?.hasAiApiKey && (
+              <div className="max-w-4xl mx-auto mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-100 rounded-lg">
+                      <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.72-3l-6.93-12a2 2 0 00-3.44 0l-6.93 12a2 2 0 001.72 3z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-amber-900">API key required</div>
+                      <p className="text-sm text-amber-700">
+                        Add your Google AI Studio API key in Account Settings to run resume analysis.
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href="/account?tab=security"
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                  >
+                    Open settings
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* Stats Cards */}
             {!loading && resumes.length > 0 && (
               <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

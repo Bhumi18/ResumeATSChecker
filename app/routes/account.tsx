@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useUser, useAuth } from "../lib/auth-context";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { safeConsole } from "../lib/logging";
 import { getPasswordPolicyError } from "../lib/password-policy";
 
@@ -8,6 +8,7 @@ export default function AccountPage() {
   const { user } = useUser();
   const { updateProfile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"profile" | "security" | "accounts">("profile");
   const [isEditingName, setIsEditingName] = useState(false);
@@ -30,6 +31,14 @@ export default function AccountPage() {
   const [hasApiKey, setHasApiKey] = useState(Boolean(user?.hasAiApiKey));
   const [apiKeyLast4, setApiKeyLast4] = useState<string | null>(user?.aiApiKeyLast4 || null);
   const [apiKeySaving, setApiKeySaving] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+    if (tab === "profile" || tab === "security" || tab === "accounts") {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     setHasApiKey(Boolean(user?.hasAiApiKey));
@@ -305,6 +314,7 @@ export default function AccountPage() {
                   setActiveTab(tab.id as any);
                   setError("");
                   setMessage("");
+                  navigate(`/account?tab=${tab.id}`);
                 }}
                 className={`flex-1 px-6 py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
                   activeTab === tab.id
